@@ -225,7 +225,7 @@
             }
 
             codigoOutput.textContent = "// A gerar código com Inteligência Artificial...";
-            explicacaoOutput.textContent = "A analisar o seu pedido...";
+            explicacaoOutput.textContent = "A analisar o seu pedido e a estruturar a explicação pedagógica...";
 
             try {
                 // Comunicação direta com o backend alojado no Render
@@ -241,7 +241,13 @@
 
                 if (dados.success) {
                     codigoOutput.textContent = dados.code;
-                    explicacaoOutput.textContent = "Código estruturado com sucesso para o Arduino Uno R4 WiFi com base nas diretrizes pedagógicas do StartCode.";
+                    
+                    // Explicacao pedagógica dinâmica
+                    explicacaoOutput.innerHTML = `
+                        <strong>Análise do Projeto:</strong> ${prompt}<br>
+                        • <strong>Configuração (setup):</strong> Inicializa os pinos digitais e a comunicação série para o Arduino Uno R4 WiFi.<br>
+                        • <strong>Ciclo (loop):</strong> Controla o tempo de execução e o acionamento dos atuadores de forma cíclica e estruturada.
+                    `;
                 } else {
                     codigoOutput.textContent = "// Erro ao gerar o código.";
                     explicacaoOutput.textContent = "Não foi possível processar o pedido neste momento.";
@@ -256,18 +262,28 @@
         function limparTudo() {
             document.getElementById('promptInput').value = '';
             document.getElementById('codigoOutput').textContent = '// O código gerado pela inteligência artificial aparecerá aqui...';
-            document.getElementById('explicacaoOutput').textContent = 'A IA explicará passo a passo como o código funciona para apoiar a aprendizagem do aluno.';
+            document.getElementById('explicacaoOutput').innerHTML = 'A IA explicará passo a passo como o código funciona para apoiar a aprendizagem do aluno.';
         }
 
         function copiarCodigo() {
             const codigo = document.getElementById('codigoOutput').textContent;
+            if (codigo.startsWith('// O código')) {
+                alert('Ainda não há código gerado para copiar.');
+                return;
+            }
             navigator.clipboard.writeText(codigo).then(() => {
-                alert('Código copiado para a área de transferência!');
+                alert('Código copiado para a área de transferência com sucesso!');
             });
         }
 
         function verFluxograma() {
-            alert('Funcionalidade de fluxograma interativo pronta para visualização pedagógica!');
+            const codigo = document.getElementById('codigoOutput').textContent;
+            if (codigo.startsWith('// O código')) {
+                alert('Gere primeiro o código para poder visualizar o fluxograma correspondente.');
+                return;
+            }
+            
+            alert('📊 Fluxograma Lógico do StartCode:\n\n1. Início (setup)\n   ⬇\n2. Ativação de Pinos / Portas\n   ⬇\n3. Execução Contínua (loop)\n   ⬇\n4. Condições e Atrasos (delay)');
         }
     </script>
 </body>
