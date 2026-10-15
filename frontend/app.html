@@ -178,7 +178,7 @@
             background-color: #8b5cf6;
         }
 
-        /* Estilo do Modal do Fluxograma */
+        /* Estilo Ajustado do Modal com Barra de Rolagem e Condições */
         .modal {
             display: none;
             position: fixed;
@@ -187,47 +187,107 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.7);
+            background-color: rgba(0,0,0,0.8);
             justify-content: center;
             align-items: center;
         }
         .modal-content {
             background-color: #1e293b;
-            padding: 30px;
+            padding: 25px;
             border-radius: 12px;
             border: 1px solid #475569;
             width: 90%;
-            max-width: 500px;
-            text-align: center;
+            max-width: 550px;
+            max-height: 85vh; /* Garante que nunca ultrapassa a tela */
+            display: flex;
+            flex-direction: column;
             color: #f8fafc;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
-        .modal-content h3 {
-            color: #38bdf8;
-            margin-bottom: 20px;
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
         }
-        .flowchart-step {
+        .modal-header h3 {
+            color: #38bdf8;
+            font-size: 1.2rem;
+        }
+        .modal-body {
+            overflow-y: auto; /* Barra de rolagem interna ativada */
+            flex-grow: 1;
+            padding-right: 5px;
+            margin-bottom: 15px;
+        }
+        /* Blocos do Fluxograma */
+        .flow-node {
             background-color: #0f172a;
             border: 1px solid #334155;
-            padding: 10px 15px;
-            margin: 8px 0;
-            border-radius: 6px;
+            padding: 12px 15px;
+            margin: 6px auto;
+            border-radius: 8px;
             font-size: 0.9rem;
+            text-align: center;
+            width: 90%;
             color: #e2e8f0;
         }
-        .flowchart-arrow {
-            color: #38bdf8;
+        .flow-inicio-fim {
+            background-color: #065f46;
+            border-color: #10b981;
+            color: #ecfdf5;
+            border-radius: 20px;
             font-weight: bold;
+            width: 70%;
+        }
+        .flow-decisao {
+            background-color: #78350f;
+            border-color: #f59e0b;
+            color: #fef3c7;
+            transform: skewX(-5deg);
+            font-weight: bold;
+        }
+        .flow-ramificacao {
+            display: flex;
+            justify-content: space-around;
+            width: 95%;
+            margin: 6px auto;
+            gap: 10px;
+        }
+        .branch-box {
+            background-color: #172554;
+            border: 1px solid #3b82f6;
+            padding: 10px;
+            border-radius: 8px;
+            width: 48%;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+        .branch-box span {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .branch-sim { color: #4ade80; }
+        .branch-nao { color: #f87171; }
+        
+        .flow-arrow {
+            color: #38bdf8;
+            font-size: 1.1rem;
+            text-align: center;
             margin: 2px 0;
         }
         .close-btn {
             background-color: #ef4444;
             color: white;
-            margin-top: 20px;
-            padding: 8px 20px;
+            padding: 10px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
+            font-weight: 600;
+            width: 100%;
         }
         .close-btn:hover {
             background-color: #dc2626;
@@ -273,12 +333,14 @@
         </div>
     </div>
 
-    <!-- Modal do Fluxograma (Estilo Diagrama de Blocos) -->
+    <!-- Modal do Fluxograma com Barra de Rolagem e Condições -->
     <div id="fluxogramaModal" class="modal">
         <div class="modal-content">
-            <h3>📊 Fluxograma Lógico do Projeto</h3>
-            <div id="fluxogramaPassos">
-                <!-- Os passos gerados entram aqui dinamicamente -->
+            <div class="modal-header">
+                <h3>📊 Fluxograma Lógico do Projeto</h3>
+            </div>
+            <div class="modal-body" id="fluxogramaPassos">
+                <!-- Os nós estruturados do fluxograma entram aqui -->
             </div>
             <button class="close-btn" onclick="fecharFluxograma()">Fechar</button>
         </div>
@@ -308,7 +370,7 @@
                 });
 
                 const dados = await resposta.json();
-                dadosGlobais = dados; // Guardar para o fluxograma
+                dadosGlobais = dados;
 
                 if (dados.success) {
                     codigoOutput.textContent = dados.code;
@@ -351,17 +413,36 @@
             const container = document.getElementById('fluxogramaPassos');
             container.innerHTML = '';
 
-            dadosGlobais.flowchart.forEach((passo, index) => {
-                const divStep = document.createElement('div');
-                divStep.className = 'flowchart-step';
-                divStep.textContent = `${index + 1}. ${passo}`;
-                container.appendChild(divStep);
+            dadosGlobais.flowchart.forEach((item, index) => {
+                const nodeDiv = document.createElement('div');
+
+                if (item.tipo === 'inicio' || item.tipo === 'fim') {
+                    nodeDiv.className = 'flow-node flow-inicio-fim';
+                    nodeDiv.textContent = item.texto;
+                } else if (item.tipo === 'decisao') {
+                    nodeDiv.className = 'flow-node flow-decisao';
+                    nodeDiv.textContent = `◇ ${item.texto}`;
+                } else if (item.tipo === 'ramificacao') {
+                    const ramDiv = document.createElement('div');
+                    ramDiv.className = 'flow-ramificacao';
+                    ramDiv.innerHTML = `
+                        <div class="branch-box"><span class="branch-sim">Sim</span>${item.condicaoSim}</div>
+                        <div class="branch-box"><span class="branch-nao">Não</span>${item.condicaoNao}</div>
+                    `;
+                    container.appendChild(ramDiv);
+                    return;
+                } else {
+                    nodeDiv.className = 'flow-node';
+                    nodeDiv.textContent = item.texto;
+                }
+
+                container.appendChild(nodeDiv);
 
                 if (index < dadosGlobais.flowchart.length - 1) {
-                    const divArrow = document.createElement('div');
-                    divArrow.className = 'flowchart-arrow';
-                    divArrow.textContent = '⬇';
-                    container.appendChild(divArrow);
+                    const arrowDiv = document.createElement('div');
+                    arrowDiv.className = 'flow-arrow';
+                    arrowDiv.textContent = '⬇';
+                    container.appendChild(arrowDiv);
                 }
             });
 
