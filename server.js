@@ -1,8 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-// Se estiver a usar o SDK oficial do Google Gen AI, descomente a linha abaixo:
-// const { GoogleGenAI } = require('@google/genai');
+const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
 
@@ -11,84 +10,68 @@ app.use(cors());
 
 app.use(express.static(path.join(__dirname, 'frontend')));
 
-// Inicialize o cliente da IA (substitua ou configure a sua chave de API nas variáveis de ambiente do Render)
-// const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Inicializa o cliente do Google Gen AI usando a chave de API das variáveis de ambiente do Render
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.post('/api/gerar-codigo', async (req, res) => {
     try {
         const { prompt } = req.body;
-        console.log("Prompt recebido:", prompt);
+        console.log("Prompt recebido do aluno:", prompt);
 
         if (!prompt) {
             return res.status(400).json({ success: false, error: "O prompt não pode estar vazio." });
         }
 
-        // --- INTEGRAÇÃO DA IA ---
-        // Aqui faz a chamada à sua API de IA. Exemplo com Gemini:
-        /*
+        // System prompt estrito para forçar a IA a gerar código C++ correto para Arduino baseado no pedido exato
+        const systemInstruction = `És o StartCode, um assistente especialista em programação de robótica educacional para Arduino. 
+O teu objetivo é ler o pedido do aluno em linguagem natural e gerar estritamente um objeto JSON puro (sem blocos de markdown de código à volta, apenas JSON válido) com a seguinte estrutura exata:
+{
+  "code": "// StartCode - Código C++ gerado para Arduino\\n...",
+  "explanation": "<strong>🎯 O que este código faz:</strong><br>...",
+  "flowchart": [
+    { "tipo": "inicio", "texto": "..." },
+    { "tipo": "processo", "texto": "..." },
+    { "tipo": "decisao", "texto": "..." },
+    { "tipo": "ramificacao", "condicaoSim": "...", "condicaoNao": "..." },
+    { "tipo": "fim", "texto": "..." }
+  ]
+}
+REGRAS CRÍTICAS:
+1. Lê atentamente as portas digitais/analógicas e componentes especificados pelo aluno (ex: LED na porta 3, botão na porta 5).
+2. NUNCA utilizes o código padrão de Blink a menos que o aluno o peça expressamente.
+3. Garante que o JSON gerado é válido e pronto a ser interpretado por JSON.parse().`;
+
+        // Chamada real ao modelo Gemini
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash', // ou o modelo que estiver a utilizar
+            model: 'gemini-2.5-flash',
             contents: [
-                {
-                    role: 'system',
-                    parts: [{ text: "És o StartCode, um assistente especialista em programação de robótica educacional para Arduino. Deves analisar o pedido do aluno e devolver estritamente um objeto JSON com três propriedades: 'code' (código C++ válido), 'explanation' (explicação didática formatada em HTML) e 'flowchart' (array de objetos com 'tipo' e 'texto' para o fluxograma)." }]
-                },
-                {
-                    role: 'user',
-                    parts: [{ text: prompt }]
-                }
+                { role: 'user', parts: [{ text: `${systemInstruction}\n\nPedido do aluno: ${prompt}` }] }
             ]
         });
-        const textoResposta = response.text;
-        // Parse da resposta da IA para extrair o código, explicação e fluxograma...
-        */
 
-        // Para já, mantemos uma estrutura dinâmica de segurança caso esteja a ajustar os parâmetros:
-        const codigoGerado = `// StartCode - Projeto Gerado por IA
-// Ideia do aluno: "${prompt}"
-const int pinDispositivo = 3; // Mapeado automaticamente com base no pedido
+        const respostaTexto = response.text;
+        console.log("Resposta bruta da IA:", respostaTexto);
 
-void setup() {
-  pinMode(pinDispositivo, OUTPUT);
-  Serial.begin(9600);
-}
+        // Limpar possíveis formatações de markdown que a IA possa incluir (como ```json ... ```)
+        let jsonLimpo = respostaTexto.trim();
+        if (jsonLimpo.startsWith("```json")) {
+            jsonLimpo = jsonLimpo.replace(/^```json/, "").replace(/```$/, "").trim();
+        } else if (jsonLimpo.startsWith("```")) {
+            jsonLimpo = jsonLimpo.replace(/^```/, "").replace(/```$/, "").trim();
+        }
 
-void loop() {
-  // Lógica gerada dinamicamente para atender à instrução do aluno
-  digitalWrite(pinDispositivo, HIGH);
-  delay(500);
-  digitalWrite(pinDispositivo, LOW);
-  delay(500);
-}`;
-
-        const explicacaoDidatica = `
-<strong>🎯 O que este código faz com base na sua ideia ("${prompt}"):</strong><br>
-Este programa foi estruturado dinamicamente para traduzir a sua instrução maker em comandos compreensíveis para o microcontrolador.<br><br>
-<strong>📚 Explicação didática passo a passo:</strong><br>
-1. <strong>Mapeamento de Pinos:</strong> Configuração das portas digitais correspondentes aos componentes solicitados.<br>
-2. <strong>Configuração (setup):</strong> Definição dos modos de operação (INPUT/OUTPUT) e taxa de transmissão série.<br>
-3. <strong>Ciclo de Execução (loop):</strong> Execução contínua da lógica programada de acordo com o comportamento pretendido.
-        `;
-
-        const estruturaFluxograma = [
-            { tipo: 'inicio', texto: 'Início: Interpretação da Ideia do Aluno' },
-            { tipo: 'processo', texto: 'Configuração dos pinos no setup()' },
-            { tipo: 'decisao', texto: 'Condição do projeto ativada?' },
-            { tipo: 'ramificacao', condicaoSim: 'Executar ação no componente (HIGH)', condicaoNao: 'Manter estado de espera (LOW)' },
-            { tipo: 'processo', texto: 'Controlo de tempo e repetição no loop()' },
-            { tipo: 'fim', texto: 'Fim do Ciclo / Atualização Contínua' }
-        ];
+        const dadosGerados = JSON.parse(jsonLimpo);
 
         res.json({ 
             success: true, 
-            code: codigoGerado, 
-            explanation: explicacaoDidatica,
-            flowchart: estruturaFluxograma
+            code: dadosGerados.code, 
+            explanation: dadosGerados.explanation,
+            flowchart: dadosGerados.flowchart
         });
 
     } catch (error) {
-        console.error("Erro no servidor ao gerar código:", error);
-        res.status(500).json({ success: false, error: "Erro interno no servidor ao processar a IA." });
+        console.error("Erro no servidor ao processar com a IA:", error);
+        res.status(500).json({ success: false, error: "Erro ao gerar o código com a inteligência artificial." });
     }
 });
 
