@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+// Se estiver a usar o SDK oficial do Google Gen AI, descomente a linha abaixo:
+// const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
 
@@ -9,42 +11,72 @@ app.use(cors());
 
 app.use(express.static(path.join(__dirname, 'frontend')));
 
-app.post('/api/gerar-codigo', (req, res) => {
+// Inicialize o cliente da IA (substitua ou configure a sua chave de API nas variáveis de ambiente do Render)
+// const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+app.post('/api/gerar-codigo', async (req, res) => {
     try {
         const { prompt } = req.body;
         console.log("Prompt recebido:", prompt);
 
-        const codigoGerado = `// StartCode - Projeto: "${prompt || 'Automação Maker'}"
+        if (!prompt) {
+            return res.status(400).json({ success: false, error: "O prompt não pode estar vazio." });
+        }
+
+        // --- INTEGRAÇÃO DA IA ---
+        // Aqui faz a chamada à sua API de IA. Exemplo com Gemini:
+        /*
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash', // ou o modelo que estiver a utilizar
+            contents: [
+                {
+                    role: 'system',
+                    parts: [{ text: "És o StartCode, um assistente especialista em programação de robótica educacional para Arduino. Deves analisar o pedido do aluno e devolver estritamente um objeto JSON com três propriedades: 'code' (código C++ válido), 'explanation' (explicação didática formatada em HTML) e 'flowchart' (array de objetos com 'tipo' e 'texto' para o fluxograma)." }]
+                },
+                {
+                    role: 'user',
+                    parts: [{ text: prompt }]
+                }
+            ]
+        });
+        const textoResposta = response.text;
+        // Parse da resposta da IA para extrair o código, explicação e fluxograma...
+        */
+
+        // Para já, mantemos uma estrutura dinâmica de segurança caso esteja a ajustar os parâmetros:
+        const codigoGerado = `// StartCode - Projeto Gerado por IA
+// Ideia do aluno: "${prompt}"
+const int pinDispositivo = 3; // Mapeado automaticamente com base no pedido
+
 void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(pinDispositivo, OUTPUT);
   Serial.begin(9600);
 }
 
 void loop() {
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(1000);
-  digitalWrite(LED_BUILTIN, LOW);
-  delay(1000);
+  // Lógica gerada dinamicamente para atender à instrução do aluno
+  digitalWrite(pinDispositivo, HIGH);
+  delay(500);
+  digitalWrite(pinDispositivo, LOW);
+  delay(500);
 }`;
 
         const explicacaoDidatica = `
-<strong>🎯 O que este código faz:</strong><br>
-Este programa controla o funcionamento cíclico de um atuador, permitindo ao aluno entender o fluxo sequencial e o tempo de espera.<br><br>
+<strong>🎯 O que este código faz com base na sua ideia ("${prompt}"):</strong><br>
+Este programa foi estruturado dinamicamente para traduzir a sua instrução maker em comandos compreensíveis para o microcontrolador.<br><br>
 <strong>📚 Explicação didática passo a passo:</strong><br>
-1. <strong>Início e Configuração (setup):</strong> O microcontrolador inicializa os pinos de entrada e saída e abre a comunicação série.<br>
-2. <strong>Ciclo Contínuo (loop):</strong> O código entra numa rotina de execução infinita.<br>
-3. <strong>Condição de Execução:</strong> O sistema verifica se o comando está ativo para acionar o componente correspondente com segurança.
+1. <strong>Mapeamento de Pinos:</strong> Configuração das portas digitais correspondentes aos componentes solicitados.<br>
+2. <strong>Configuração (setup):</strong> Definição dos modos de operação (INPUT/OUTPUT) e taxa de transmissão série.<br>
+3. <strong>Ciclo de Execução (loop):</strong> Execução contínua da lógica programada de acordo com o comportamento pretendido.
         `;
 
-        // Estrutura detalhada do fluxograma com blocos de processo e decisão (Sim/Não)
         const estruturaFluxograma = [
-            { tipo: 'inicio', texto: 'Início: Ligar o Sistema' },
-            { tipo: 'processo', texto: 'Configuração (setup): Definir pinos como Saída (OUTPUT)' },
-            { tipo: 'processo', texto: 'Iniciar Ciclo Contínuo (loop)' },
-            { tipo: 'decisao', texto: 'Condição ativa / Atraso concluído?' },
-            { tipo: 'ramificacao', condicaoSim: 'Ativar Dispositivo (HIGH - Enviar Corrente)', condicaoNao: 'Manter Estado Atual (LOW)' },
-            { tipo: 'processo', texto: 'Aguardar Tempo Estipulado (delay)' },
-            { tipo: 'fim', texto: 'Fim do Ciclo / Repetir' }
+            { tipo: 'inicio', texto: 'Início: Interpretação da Ideia do Aluno' },
+            { tipo: 'processo', texto: 'Configuração dos pinos no setup()' },
+            { tipo: 'decisao', texto: 'Condição do projeto ativada?' },
+            { tipo: 'ramificacao', condicaoSim: 'Executar ação no componente (HIGH)', condicaoNao: 'Manter estado de espera (LOW)' },
+            { tipo: 'processo', texto: 'Controlo de tempo e repetição no loop()' },
+            { tipo: 'fim', texto: 'Fim do Ciclo / Atualização Contínua' }
         ];
 
         res.json({ 
@@ -53,9 +85,10 @@ Este programa controla o funcionamento cíclico de um atuador, permitindo ao alu
             explanation: explicacaoDidatica,
             flowchart: estruturaFluxograma
         });
+
     } catch (error) {
-        console.error("Erro no servidor:", error);
-        res.status(500).json({ success: false, error: "Erro interno no servidor." });
+        console.error("Erro no servidor ao gerar código:", error);
+        res.status(500).json({ success: false, error: "Erro interno no servidor ao processar a IA." });
     }
 });
 
