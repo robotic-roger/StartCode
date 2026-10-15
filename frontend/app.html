@@ -32,13 +32,18 @@
             align-items: center;
             gap: 12px;
         }
+        .robot-img {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+        }
         .logo-area h1 {
             font-size: 1.5rem;
             color: #38bdf8;
         }
-        .board-tag {
-            color: #94a3b8;
-            font-size: 0.9rem;
+        .brand-logo-img {
+            height: 45px;
+            object-fit: contain;
         }
         .main-grid {
             display: grid;
@@ -178,10 +183,14 @@
 
     <header>
         <div class="logo-area">
-            <span>🤖</span>
+            <!-- Robô Start oficial no lugar do ícone anterior -->
+            <img src="start.png" alt="Robô Start" class="robot-img">
             <h1>StartCode - Assistente IA para codificação</h1>
         </div>
-        <div class="board-tag">Arduino Uno R4 WiFi</div>
+        <div>
+            <!-- Logótipo Start Maker no canto superior direito -->
+            <img src="logo.png" alt="Start Maker" class="brand-logo-img">
+        </div>
     </header>
 
     <div class="main-grid">
@@ -228,7 +237,6 @@
             explicacaoOutput.textContent = "A analisar o seu pedido e a estruturar a explicação pedagógica...";
 
             try {
-                // Comunicação direta com o backend alojado no Render
                 const resposta = await fetch('https://startcode-api.onrender.com/api/gerar-codigo', {
                     method: 'POST',
                     headers: {
@@ -241,12 +249,10 @@
 
                 if (dados.success) {
                     codigoOutput.textContent = dados.code;
-                    
-                    // Explicacao pedagógica dinâmica
                     explicacaoOutput.innerHTML = `
                         <strong>Análise do Projeto:</strong> ${prompt}<br>
-                        • <strong>Configuração (setup):</strong> Inicializa os pinos digitais e a comunicação série para o Arduino Uno R4 WiFi.<br>
-                        • <strong>Ciclo (loop):</strong> Controla o tempo de execução e o acionamento dos atuadores de forma cíclica e estruturada.
+                        • <strong>Configuração (setup):</strong> Inicializa os pinos digitais e a comunicação série para o ecossistema Start Maker.<br>
+                        • <strong>Ciclo (loop):</strong> Controla o tempo de execução e o acionamento dos atuadores de forma estruturada.
                     `;
                 } else {
                     codigoOutput.textContent = "// Erro ao gerar o código.";
