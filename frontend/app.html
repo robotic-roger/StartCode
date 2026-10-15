@@ -1,1 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StartCode - Assistente IA para codificação</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 15px;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-area h1 {
+            font-size: 1.5rem;
+            color: #38bdf8;
+        }
+        .board-tag {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex-grow: 1;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .card {
+            background-color: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+        }
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        textarea {
+            width: 100%;
+            flex-grow: 1;
+            min-height: 150px;
+            background-color: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 12px;
+            color: #f8fafc;
+            font-size: 0.95rem;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #38bdf8;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-clear {
+            background-color: #334155;
+            color: #cbd5e1;
+        }
+        .btn-clear:hover {
+            background-color: #475569;
+        }
+        .btn-generate {
+            background-color: #0284c7;
+            color: white;
+            flex-grow: 1;
+        }
+        .btn-generate:hover {
+            background-color: #0ea5e9;
+        }
+        pre {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px;
+            overflow-x: auto;
+            color: #38bdf8;
+            font-family: 'Courier New', Courier, monospace;
+            flex-grow: 1;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 200px;
+            gap: 20px;
+        }
+        @media (max-width: 900px) {
+            .bottom-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .explanation-box {
+            background-color: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+            min-height: 100px;
+        }
+        .explanation-box h2 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #e2e8f0;
+        }
+        .explanation-box p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .action-side-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .btn-copy {
+            background-color: #0284c7;
+            color: white;
+            width: 100%;
+        }
+        .btn-copy:hover {
+            background-color: #0ea5e9;
+        }
+        .btn-flow {
+            background-color: #7c3aed;
+            color: white;
+            width: 100%;
+        }
+        .btn-flow:hover {
+            background-color: #8b5cf6;
+        }
+    </style>
+</head>
+<body>
 
+    <header>
+        <div class="logo-area">
+            <span>🤖</span>
+            <h1>StartCode - Assistente IA para codificação</h1>
+        </div>
+        <div class="board-tag">Arduino Uno R4 WiFi</div>
+    </header>
+
+    <div class="main-grid">
+        <!-- Caixa de Entrada -->
+        <div class="card">
+            <h2>✏️ Escreva sua ideia aqui</h2>
+            <textarea id="promptInput" placeholder="Descreva o que o seu projeto deve fazer..."></textarea>
+            <div class="button-group">
+                <button class="btn-clear" onclick="limparTudo()">Limpar</button>
+                <button class="btn-generate" onclick="gerarCodigo()">Gerar código com Start IA ⚡</button>
+            </div>
+        </div>
+
+        <!-- Caixa de Código Gerado -->
+        <div class="card">
+            <h2>💻 Código C++ (Para colar na IDE do Arduino)</h2>
+            <pre id="codigoOutput">// O código gerado pela inteligência artificial aparecerá aqui...</pre>
+        </div>
+    </div>
+
+    <div class="bottom-grid">
+        <div class="explanation-box">
+            <h2>💡 Entendendo o código</h2>
+            <p id="explicacaoOutput">A IA explicará passo a passo como o código funciona para apoiar a aprendizagem do aluno.</p>
+        </div>
+        <div class="action-side-buttons">
+            <button class="btn-copy" onclick="copiarCodigo()">📋 Copiar Código</button>
+            <button class="btn-flow" onclick="verFluxograma()">📊 Ver Fluxograma</button>
+        </div>
+    </div>
+
+    <script>
+        async function gerarCodigo() {
+            const prompt = document.getElementById('promptInput').value;
+            const codigoOutput = document.getElementById('codigoOutput');
+            const explicacaoOutput = document.getElementById('explicacaoOutput');
+
+            if (!prompt.trim()) {
+                alert('Por favor, descreva o que o seu projeto deve fazer.');
+                return;
+            }
+
+            codigoOutput.textContent = "// A gerar código com Inteligência Artificial...";
+            explicacaoOutput.textContent = "A analisar o seu pedido...";
+
+            try {
+                // Comunicação direta com o backend alojado no Render
+                const resposta = await fetch('https://startcode-api.onrender.com/api/gerar-codigo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ prompt })
+                });
+
+                const dados = await resposta.json();
+
+                if (dados.success) {
+                    codigoOutput.textContent = dados.code;
+                    explicacaoOutput.textContent = "Código estruturado com sucesso para o Arduino Uno R4 WiFi com base nas diretrizes pedagógicas do StartCode.";
+                } else {
+                    codigoOutput.textContent = "// Erro ao gerar o código.";
+                    explicacaoOutput.textContent = "Não foi possível processar o pedido neste momento.";
+                }
+            } catch (erro) {
+                console.error("Erro na ligação:", erro);
+                codigoOutput.textContent = "// Erro de ligação com o servidor na nuvem.";
+                explicacaoOutput.textContent = "Verifique a sua ligação à internet.";
+            }
+        }
+
+        function limparTudo() {
+            document.getElementById('promptInput').value = '';
+            document.getElementById('codigoOutput').textContent = '// O código gerado pela inteligência artificial aparecerá aqui...';
+            document.getElementById('explicacaoOutput').textContent = 'A IA explicará passo a passo como o código funciona para apoiar a aprendizagem do aluno.';
+        }
+
+        function copiarCodigo() {
+            const codigo = document.getElementById('codigoOutput').textContent;
+            navigator.clipboard.writeText(codigo).then(() => {
+                alert('Código copiado para a área de transferência!');
+            });
+        }
+
+        function verFluxograma() {
+            alert('Funcionalidade de fluxograma interativo pronta para visualização pedagógica!');
+        }
+    </script>
+</body>
+</html>
