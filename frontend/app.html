@@ -144,17 +144,17 @@
             border-radius: 12px;
             padding: 20px;
             border: 1px solid #334155;
-            min-height: 100px;
+            min-height: 120px;
         }
         .explanation-box h2 {
             font-size: 1.1rem;
             margin-bottom: 10px;
             color: #e2e8f0;
         }
-        .explanation-box p {
-            color: #94a3b8;
+        .explanation-box p, .explanation-box div {
+            color: #cbd5e1;
             font-size: 0.9rem;
-            line-height: 1.4;
+            line-height: 1.5;
         }
         .action-side-buttons {
             display: flex;
@@ -177,24 +177,76 @@
         .btn-flow:hover {
             background-color: #8b5cf6;
         }
+
+        /* Estilo do Modal do Fluxograma */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #475569;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            color: #f8fafc;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .modal-content h3 {
+            color: #38bdf8;
+            margin-bottom: 20px;
+        }
+        .flowchart-step {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #e2e8f0;
+        }
+        .flowchart-arrow {
+            color: #38bdf8;
+            font-weight: bold;
+            margin: 2px 0;
+        }
+        .close-btn {
+            background-color: #ef4444;
+            color: white;
+            margin-top: 20px;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .close-btn:hover {
+            background-color: #dc2626;
+        }
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo-area">
-            <!-- Robô Start oficial no lugar do ícone anterior -->
             <img src="start.png" alt="Robô Start" class="robot-img">
             <h1>StartCode - Assistente IA para codificação</h1>
         </div>
         <div>
-            <!-- Logótipo Start Maker no canto superior direito -->
             <img src="logo.png" alt="Start Maker" class="brand-logo-img">
         </div>
     </header>
 
     <div class="main-grid">
-        <!-- Caixa de Entrada -->
         <div class="card">
             <h2>✏️ Escreva sua ideia aqui</h2>
             <textarea id="promptInput" placeholder="Descreva o que o seu projeto deve fazer..."></textarea>
@@ -204,7 +256,6 @@
             </div>
         </div>
 
-        <!-- Caixa de Código Gerado -->
         <div class="card">
             <h2>💻 Código C++ (Para colar na IDE do Arduino)</h2>
             <pre id="codigoOutput">// O código gerado pela inteligência artificial aparecerá aqui...</pre>
@@ -214,7 +265,7 @@
     <div class="bottom-grid">
         <div class="explanation-box">
             <h2>💡 Entendendo o código</h2>
-            <p id="explicacaoOutput">A IA explicará passo a passo como o código funciona para apoiar a aprendizagem do aluno.</p>
+            <div id="explicacaoOutput">A IA explicará passo a passo como o código funciona de forma didática para apoiar a aprendizagem do aluno.</div>
         </div>
         <div class="action-side-buttons">
             <button class="btn-copy" onclick="copiarCodigo()">📋 Copiar Código</button>
@@ -222,7 +273,20 @@
         </div>
     </div>
 
+    <!-- Modal do Fluxograma (Estilo Diagrama de Blocos) -->
+    <div id="fluxogramaModal" class="modal">
+        <div class="modal-content">
+            <h3>📊 Fluxograma Lógico do Projeto</h3>
+            <div id="fluxogramaPassos">
+                <!-- Os passos gerados entram aqui dinamicamente -->
+            </div>
+            <button class="close-btn" onclick="fecharFluxograma()">Fechar</button>
+        </div>
+    </div>
+
     <script>
+        let dadosGlobais = null;
+
         async function gerarCodigo() {
             const prompt = document.getElementById('promptInput').value;
             const codigoOutput = document.getElementById('codigoOutput');
@@ -233,63 +297,79 @@
                 return;
             }
 
-            codigoOutput.textContent = "// A gerar código com Inteligência Artificial...";
-            explicacaoOutput.textContent = "A analisar o seu pedido e a estruturar a explicação pedagógica...";
+            codigoOutput.textContent = "// A gerar código inteligente...";
+            explicacaoOutput.textContent = "A estruturar a explicação didática para o aluno...";
 
             try {
                 const resposta = await fetch('https://startcode-api.onrender.com/api/gerar-codigo', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt })
                 });
 
                 const dados = await resposta.json();
+                dadosGlobais = dados; // Guardar para o fluxograma
 
                 if (dados.success) {
                     codigoOutput.textContent = dados.code;
-                    explicacaoOutput.innerHTML = `
-                        <strong>Análise do Projeto:</strong> ${prompt}<br>
-                        • <strong>Configuração (setup):</strong> Inicializa os pinos digitais e a comunicação série para o ecossistema Start Maker.<br>
-                        • <strong>Ciclo (loop):</strong> Controla o tempo de execução e o acionamento dos atuadores de forma estruturada.
-                    `;
+                    explicacaoOutput.innerHTML = dados.explanation;
                 } else {
                     codigoOutput.textContent = "// Erro ao gerar o código.";
-                    explicacaoOutput.textContent = "Não foi possível processar o pedido neste momento.";
+                    explicacaoOutput.textContent = "Não foi possível processar o pedido.";
                 }
             } catch (erro) {
                 console.error("Erro na ligação:", erro);
                 codigoOutput.textContent = "// Erro de ligação com o servidor na nuvem.";
-                explicacaoOutput.textContent = "Verifique a sua ligação à internet.";
+                explicacaoOutput.textContent = "Verifique a ligação à internet.";
             }
         }
 
         function limparTudo() {
             document.getElementById('promptInput').value = '';
             document.getElementById('codigoOutput').textContent = '// O código gerado pela inteligência artificial aparecerá aqui...';
-            document.getElementById('explicacaoOutput').innerHTML = 'A IA explicará passo a passo como o código funciona para apoiar a aprendizagem do aluno.';
+            document.getElementById('explicacaoOutput').innerHTML = 'A IA explicará passo a passo como o código funciona de forma didática para apoiar a aprendizagem do aluno.';
+            dadosGlobais = null;
         }
 
         function copiarCodigo() {
             const codigo = document.getElementById('codigoOutput').textContent;
             if (codigo.startsWith('// O código')) {
-                alert('Ainda não há código gerado para copiar.');
+                alert('Gere primeiro o código antes de copiar.');
                 return;
             }
             navigator.clipboard.writeText(codigo).then(() => {
-                alert('Código copiado para a área de transferência com sucesso!');
+                alert('Código copiado com sucesso!');
             });
         }
 
         function verFluxograma() {
-            const codigo = document.getElementById('codigoOutput').textContent;
-            if (codigo.startsWith('// O código')) {
-                alert('Gere primeiro o código para poder visualizar o fluxograma correspondente.');
+            if (!dadosGlobais || !dadosGlobais.flowchart) {
+                alert('Gere primeiro o código com a IA para visualizar o fluxograma correspondente.');
                 return;
             }
-            
-            alert('📊 Fluxograma Lógico do StartCode:\n\n1. Início (setup)\n   ⬇\n2. Ativação de Pinos / Portas\n   ⬇\n3. Execução Contínua (loop)\n   ⬇\n4. Condições e Atrasos (delay)');
+
+            const container = document.getElementById('fluxogramaPassos');
+            container.innerHTML = '';
+
+            dadosGlobais.flowchart.forEach((passo, index) => {
+                const divStep = document.createElement('div');
+                divStep.className = 'flowchart-step';
+                divStep.textContent = `${index + 1}. ${passo}`;
+                container.appendChild(divStep);
+
+                if (index < dadosGlobais.flowchart.length - 1) {
+                    const divArrow = document.createElement('div');
+                    divArrow.className = 'flowchart-arrow';
+                    divArrow.textContent = '⬇';
+                    container.appendChild(divArrow);
+                }
+            });
+
+            document.getElementById('fluxogramaModal').style.display = 'flex';
+        }
+
+        function fecharFluxograma() {
+            document.getElementById('fluxogramaModal').style.display = 'none';
         }
     </script>
 </body>
