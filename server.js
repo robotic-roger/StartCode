@@ -42,7 +42,7 @@ REGRAS CRÍTICAS:
 4. Garante que o JSON gerado é válido e pronto a ser interpretado por JSON.parse().`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3.8-flash',
             contents: [
                 { role: 'user', parts: [{ text: `${systemInstruction}\n\nPedido do aluno: ${prompt}` }] }
             ]
@@ -73,7 +73,7 @@ REGRAS CRÍTICAS:
     }
 });
 
-// Redirecionamento seguro para o frontend sem usar asteriscos nas rotas do Express
+// Redirecionamento seguro para o frontend
 app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'app.html'));
 });
