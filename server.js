@@ -10,7 +10,7 @@ app.use(cors());
 
 app.use(express.static(path.join(__dirname, 'frontend')));
 
-// Inicializa o cliente do Google Gen AI utilizando a variável de ambiente do Render
+// Inicializa o cliente do Google Gen AI
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.post('/api/gerar-codigo', async (req, res) => {
@@ -73,7 +73,8 @@ REGRAS CRÍTICAS:
     }
 });
 
-app.get('*', (req, res) => {
+// Rota de fallback segura compatível com as versões recentes do Express
+app.get('/(.*)', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'app.html'));
 });
 
