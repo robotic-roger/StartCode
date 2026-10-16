@@ -22,7 +22,6 @@ app.post('/api/gerar-codigo', async (req, res) => {
             return res.status(400).json({ success: false, error: "O prompt não pode estar vazio." });
         }
 
-        // System prompt estrito para forçar a IA a gerar código C++ correto para Arduino com base no pedido livre do aluno
         const systemInstruction = `És o StartCode, um assistente especialista em programação de robótica educacional para Arduino. 
 O teu objetivo é ler o pedido do aluno em linguagem natural e gerar estritamente um objeto JSON puro (sem blocos de markdown de código à volta, apenas JSON válido) com a seguinte estrutura exata:
 {
@@ -42,7 +41,6 @@ REGRAS CRÍTICAS:
 3. NUNCA utilizes um código padrão de Blink a menos que o aluno o peça expressamente.
 4. Garante que o JSON gerado é válido e pronto a ser interpretado por JSON.parse().`;
 
-        // Chamada real ao modelo Gemini
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: [
@@ -53,7 +51,6 @@ REGRAS CRÍTICAS:
         const respostaTexto = response.text;
         console.log("Resposta bruta da IA:", respostaTexto);
 
-        // Limpar possíveis formatações de markdown que a IA possa incluir (como ```json ... ```)
         let jsonLimpo = respostaTexto.trim();
         if (jsonLimpo.startsWith("```json")) {
             jsonLimpo = jsonLimpo.replace(/^```json/, "").replace(/```$/, "").trim();
