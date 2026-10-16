@@ -73,7 +73,7 @@ REGRAS CRÍTICAS:
     }
 });
 
-// Redirecionamento seguro para o frontend
+// Redirecionamento seguro para o frontend sem rotas com asterisco
 app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'app.html'));
 });
