@@ -73,8 +73,8 @@ REGRAS CRÍTICAS:
     }
 });
 
-// Rota de fallback para SPA
-app.get('*', (req, res) => {
+// Redirecionamento seguro para o frontend sem usar asteriscos nas rotas do Express
+app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'app.html'));
 });
 
