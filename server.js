@@ -73,8 +73,8 @@ REGRAS CRÍTICAS:
     }
 });
 
-// Rota de fallback segura compatível com as versões recentes do Express
-app.get('/(.*)', (req, res) => {
+// Rota de fallback correta para SPA em Express moderno
+app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'app.html'));
 });
 
