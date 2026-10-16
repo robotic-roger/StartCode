@@ -73,12 +73,10 @@ REGRAS CRÍTICAS:
     }
 });
 
-// Redirecionamento seguro para o frontend sem rotas com asterisco
+// Redirecionamento seguro para o frontend
 app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'app.html'));
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor a correr na porta ${PORT}`);
-});
+// Exportação para ambiente Serverless (Vercel)
+module.exports = app;

@@ -1,14 +1,13 @@
 {
   "name": "startcode",
   "version": "1.0.0",
-  "description": "StartCode - Assistente de Programação Arduino com IA",
+  "description": "StartCode Backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "cors": "latest",
-    "express": "latest",
-    "@google/genai": "latest"
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
   }
 }
