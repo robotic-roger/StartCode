@@ -10,6 +10,7 @@ app.use(cors());
 
 app.use(express.static(path.join(__dirname, 'frontend')));
 
+// Inicialização correta da API com a chave de ambiente
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.post('/api/gerar-codigo', async (req, res) => {
@@ -39,14 +40,18 @@ REGRAS CRÍTICAS:
 2. Gera o código C++ válido e estruturado para Arduino IDE (com setup() e loop() corretos).
 3. Responde APENAS com o objeto JSON válido, sem texto adicional ou marcadores markdown.`;
 
-        // Chamada otimizada para o SDK @google/genai
+        // Chamada direta e limpa para o modelo gemini-1.5-flash
         const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
-            contents: `${systemInstruction}\n\nPedido do aluno: ${prompt}`
+            model: 'gemini-1.5-flash',
+            contents: [
+                {
+                    role: 'user',
+                    parts: [{ text: `${systemInstruction}\n\nPedido do aluno: ${prompt}` }]
+                }
+            ]
         });
 
-        // Extrai o texto da resposta de forma segura
-        const respostaTexto = response.text || (response.candidates && response.candidates[0]?.content?.parts[0]?.text) || "";
+        const respostaTexto = response.text || "";
         console.log("Resposta bruta da IA:", respostaTexto);
 
         let jsonLimpo = respostaTexto.trim();
@@ -71,8 +76,10 @@ REGRAS CRÍTICAS:
     }
 });
 
+// Redirecionamento seguro para o frontend
 app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'app.html'));
 });
 
+// Exportação para ambiente Serverless (Vercel)
 module.exports = app;
