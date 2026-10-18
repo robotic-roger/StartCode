@@ -2,12 +2,24 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
+
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
-app.use(express.static(path.join(__dirname, 'frontend')));
+
+// Pastas de arquivos estáticos
+const publicDir = path.join(__dirname, 'public');
+const frontendDir = path.join(__dirname, 'frontend');
+
+// Disponibiliza as imagens da pasta public.
+// Os arquivos start.png e logo.png ficam acessíveis em /start.png e /logo.png.
+app.use(express.static(publicDir));
+
+// Mantém a disponibilização dos arquivos do frontend.
+app.use(express.static(frontendDir));
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY
@@ -24,6 +36,7 @@ function parseJson(text) {
   return JSON.parse(cleaned);
 }
 
+// GERAÇÃO DO CÓDIGO ARDUINO
 app.post('/api/gerar-codigo', async (req, res) => {
   try {
     const prompt = String(req.body?.prompt || '').trim();
@@ -72,7 +85,7 @@ Não afirme que o código foi testado fisicamente.`,
       throw new Error('A resposta do modelo não contém os campos esperados.');
     }
 
-    res.json({
+    return res.json({
       success: true,
       code: data.code,
       explanation: data.explanation
@@ -80,13 +93,14 @@ Não afirme que o código foi testado fisicamente.`,
   } catch (error) {
     console.error('[StartCode][codigo]', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Falha ao gerar o código Arduino. Consulte os logs da Vercel.'
     });
   }
 });
 
+// GERAÇÃO DO FLUXOGRAMA
 app.post('/api/gerar-fluxograma', async (req, res) => {
   try {
     const code = String(req.body?.code || '').trim();
@@ -149,34 +163,47 @@ Regras:
     const diagram = String(data.diagram || '').trim();
 
     if (!/^flowchart\s+(TD|TB|LR|RL|BT)\b/i.test(diagram)) {
-      throw new Error('O modelo retornou um diagrama sem a declaração flowchart válida.');
+      throw new Error(
+        'O modelo retornou um diagrama sem a declaração flowchart válida.'
+      );
     }
 
-    if (
-      /<script|<iframe|javascript:|%%\{|^\s*click\s+/im.test(diagram)
-    ) {
+    if (/<script|<iframe|javascript:|%%\{|^\s*click\s+/im.test(diagram)) {
       throw new Error('O diagrama contém conteúdo não permitido.');
     }
 
-    console.log('[StartCode][fluxograma] Diagrama recebido:', diagram.length, 'caracteres');
+    console.log(
+      '[StartCode][fluxograma] Diagrama recebido:',
+      diagram.length,
+      'caracteres'
+    );
 
-    res.json({
+    return res.json({
       success: true,
-      title: String(data.title || 'Fluxograma do código Arduino').slice(0, 120),
+      title: String(
+        data.title || 'Fluxograma do código Arduino'
+      ).slice(0, 120),
       diagram
     });
   } catch (error) {
     console.error('[StartCode][fluxograma]', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'A IA não conseguiu produzir o fluxograma. Consulte os logs da Vercel para identificar a causa.'
     });
   }
 });
 
+// Página principal
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'app.html'));
+  const appFile = path.join(frontendDir, 'app.html');
+
+  if (!fs.existsSync(appFile)) {
+    return res.status(500).send('O arquivo frontend/app.html não foi encontrado.');
+  }
+
+  return res.sendFile(appFile);
 });
 
 module.exports = app;
