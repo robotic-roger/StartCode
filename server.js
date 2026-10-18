@@ -11,10 +11,10 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, 'frontend')));
 
 const apiKey = process.env.GEMINI_API_KEY;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
-const ai = apiKey
-  ? new GoogleGenAI({ apiKey })
-  : null;
+// Mantém o modelo que já estava funcionando no projeto.
+const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 
 app.post('/api/gerar-codigo', async (req, res) => {
   try {
@@ -31,11 +31,13 @@ app.post('/api/gerar-codigo', async (req, res) => {
     if (typeof prompt !== 'string' || !prompt.trim()) {
       return res.status(400).json({
         success: false,
-        error: 'O pedido não pode estar vazio.'
+        error: 'Escreva o que você deseja programar.'
       });
     }
 
-    if (prompt.length > 4000) {
+    const pedido = prompt.trim();
+
+    if (pedido.length > 4000) {
       return res.status(400).json({
         success: false,
         error: 'O pedido deve ter no máximo 4000 caracteres.'
@@ -43,84 +45,109 @@ app.post('/api/gerar-codigo', async (req, res) => {
     }
 
     const promptCompleto = `
-Você é o StartCode, assistente de programação de Arduino
-para robótica educacional.
+Você é o StartCode, assistente de programação Arduino
+para robótica educacional. Responda em português brasileiro.
 
-TAREFA DO ALUNO:
-${prompt.trim()}
+PEDIDO DO ALUNO:
+${pedido}
 
 INSTRUÇÕES:
-1. Gere código C++ completo e compilável para Arduino.
-2. Inclua setup() e loop().
-3. Utilize as portas e os componentes mencionados pelo aluno.
+1. Gere código C++ completo para Arduino, com setup() e loop().
+2. Utilize as portas e os componentes mencionados pelo aluno.
+3. Não invente componentes nem ligações elétricas.
 4. Inclua comentários úteis no código.
-5. Não invente componentes que não foram solicitados.
-6. Na explicação, ensine a função de cada parte do código.
-7. A explicação deve ser HTML simples, em português brasileiro.
-8. Não coloque Markdown nem cercas de código dentro dos campos.
-9. Se o pedido estiver ambíguo e isso impedir um código correto,
-   explique a dúvida no campo explanation e solicite esclarecimento
-   no lugar de inventar ligações elétricas.
+5. Explique didaticamente o funcionamento do código em HTML simples.
+6. Seja objetivo, mas explique as funções, portas e tempos importantes.
+7. Se faltar informação indispensável, explique a dúvida e peça esclarecimento.
+8. Retorne apenas JSON válido, sem Markdown ou texto fora do objeto.
 
-RETORNE SOMENTE UM OBJETO JSON VÁLIDO com estas duas chaves:
+Formato obrigatório:
 {
-  "code": "código C++ do Arduino",
+  "code": "código C++ completo",
   "explanation": "explicação didática em HTML"
 }
 `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+      model: MODEL,
       contents: promptCompleto,
       config: {
         responseMimeType: 'application/json',
-        temperature: 0.2
+        temperature: 0.2,
+        maxOutputTokens: 2500
       }
     });
 
-    const textoResposta = response.text?.trim();
+    const texto = response.text?.trim();
 
-    if (!textoResposta) {
-      throw new Error('A IA retornou uma resposta vazia.');
+    if (!texto) {
+      return res.status(502).json({
+        success: false,
+        error: 'A inteligência artificial retornou uma resposta vazia. Tente novamente.'
+      });
     }
 
-    const dados = JSON.parse(textoResposta);
+    let dados;
+
+    try {
+      dados = JSON.parse(texto);
+    } catch {
+      const textoLimpo = texto
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```$/, '')
+        .trim();
+
+      dados = JSON.parse(textoLimpo);
+    }
 
     if (
+      !dados ||
       typeof dados.code !== 'string' ||
-      typeof dados.explanation !== 'string'
+      typeof dados.explanation !== 'string' ||
+      !dados.code.trim() ||
+      !dados.explanation.trim()
     ) {
-      throw new Error('A IA retornou um formato de resposta inválido.');
+      return res.status(502).json({
+        success: false,
+        error: 'A resposta gerada está incompleta. Tente novamente.'
+      });
     }
 
     return res.json({
       success: true,
-      code: dados.code,
-      explanation: dados.explanation
+      code: dados.code.trim(),
+      explanation: dados.explanation.trim()
     });
 
   } catch (erro) {
     console.error('Erro ao gerar código:', {
-      message: erro.message,
-      status: erro.status,
-      name: erro.name
+      message: erro?.message,
+      status: erro?.status,
+      name: erro?.name
     });
+
+    if (Number(erro?.status) === 429) {
+      return res.status(429).json({
+        success: false,
+        error: 'O serviço está ocupado. Aguarde um pouco e tente novamente.'
+      });
+    }
 
     return res.status(500).json({
       success: false,
-      error: 'Não foi possível gerar o código. Tente novamente.'
+      error: 'Não foi possível gerar o código agora. Tente novamente em instantes.'
     });
   }
 });
 
-// Fallback para carregar a interface web.
+// Carrega a interface web.
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'app.html'));
 });
 
 module.exports = app;
 
-// Permite execução local e mantém compatibilidade com a Vercel.
+// Permite executar localmente e mantém o suporte à Vercel.
 if (require.main === module) {
   const PORT = process.env.PORT || 3000;
 
