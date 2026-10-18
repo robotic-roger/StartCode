@@ -22,7 +22,7 @@ app.post('/api/gerar-codigo', async (req, res) => {
         const promptCompleto = `És o StartCode, um assistente especialista em programação de Arduino para robótica educacional.
 O aluno pediu: "${prompt}"
 
-Responde estritamente num formato JSON válido (sem blocos de código markdown ou texto extra) contendo exatamente estas três chaves:
+Responde estritamente num formato JSON válido (sem blocos de código markdown ou texto extra, apenas o objeto JSON) contendo exatamente estas três chaves:
 {
   "code": "código C++ completo para Arduino com setup e loop",
   "explanation": "explicação didática em HTML",
@@ -35,7 +35,9 @@ Responde estritamente num formato JSON válido (sem blocos de código markdown o
 
         const response = await ai.models.generateContent({
             model: 'gemini-1.5-flash',
-            contents: promptCompleto
+            contents: [
+                { role: 'user', parts: [{ text: promptCompleto }] }
+            ]
         });
 
         let textoResposta = response.text.trim();
@@ -55,7 +57,7 @@ Responde estritamente num formato JSON válido (sem blocos de código markdown o
         });
 
     } catch (erro) {
-        console.error("Erro:", erro);
+        console.error("Erro detalhado:", erro);
         res.status(500).json({ success: false, error: "Erro ao gerar o código." });
     }
 });
