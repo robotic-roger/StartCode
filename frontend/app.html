@@ -4,8 +4,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071426">
   <title>StartCode | Start Maker</title>
 
+  <!-- Favicon do robô Start -->
+  <link rel="icon" type="image/png" href="/start.png">
+
+  <!-- Biblioteca de fluxogramas -->
   <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 
   <style>
@@ -22,7 +27,9 @@
       --red: #ff8585;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -31,22 +38,77 @@
       font-family: Arial, sans-serif;
     }
 
+    /* CABEÇALHO */
+
     header {
-      padding: 22px;
+      padding: 15px 22px;
       background: #09182b;
       border-bottom: 1px solid var(--border);
     }
 
-    .wrap {
-      width: min(1150px, calc(100% - 32px));
-      margin: auto;
+    .header-inner {
+      width: min(1150px, 100%);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
     }
 
-    .brand { font-size: 27px; font-weight: 800; }
-    .brand span { color: var(--yellow); }
-    .subtitle { color: var(--muted); margin-top: 6px; font-size: 14px; }
+    .brand-area {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-width: 0;
+    }
 
-    main { padding-top: 25px; padding-bottom: 50px; }
+    .robot-logo {
+      display: block;
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .brand-text {
+      min-width: 0;
+    }
+
+    .brand {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.15;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      white-space: nowrap;
+    }
+
+    .brand span {
+      color: var(--yellow);
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-top: 5px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .company-logo {
+      display: block;
+      height: 48px;
+      width: auto;
+      max-width: 220px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    main {
+      width: min(1150px, calc(100% - 32px));
+      margin: 0 auto;
+      padding-top: 25px;
+      padding-bottom: 50px;
+    }
 
     .panel {
       padding: 20px;
@@ -57,7 +119,10 @@
       min-width: 0;
     }
 
-    h2 { font-size: 19px; margin: 0 0 15px; }
+    h2 {
+      font-size: 19px;
+      margin: 0 0 15px;
+    }
 
     textarea {
       width: 100%;
@@ -72,7 +137,13 @@
       resize: vertical;
     }
 
-    .actions, .toolbar {
+    textarea:focus {
+      outline: 2px solid var(--blue);
+      outline-offset: 1px;
+    }
+
+    .actions,
+    .toolbar {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
@@ -87,11 +158,24 @@
       color: white;
       cursor: pointer;
       font-weight: bold;
+      font-size: 14px;
     }
 
-    button:disabled { opacity: .5; cursor: not-allowed; }
-    .primary { background: var(--yellow); color: #172033; border-color: var(--yellow); }
-    .flow-button { background: var(--blue); border-color: var(--blue); }
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .primary {
+      background: var(--yellow);
+      color: #172033;
+      border-color: var(--yellow);
+    }
+
+    .flow-button {
+      background: var(--blue);
+      border-color: var(--blue);
+    }
 
     #status {
       color: var(--muted);
@@ -100,12 +184,19 @@
       line-height: 1.5;
     }
 
-    #status.error, .error { color: var(--red); }
+    #status.error,
+    .error {
+      color: var(--red);
+    }
 
     .results {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
+    }
+
+    .results .panel {
+      margin-bottom: 0;
     }
 
     pre {
@@ -120,20 +211,51 @@
       font: 13px/1.6 Consolas, monospace;
     }
 
-    .explanation { line-height: 1.7; overflow-wrap: anywhere; }
-    .explanation h3 { color: var(--yellow); }
-    .empty { color: #8b9cb3; font-style: italic; }
+    .explanation {
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+      margin-top: 14px;
+    }
 
-    #flowSection { display: none; }
+    .explanation h3 {
+      color: var(--yellow);
+    }
+
+    .explanation code {
+      background: var(--inner);
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+
+    .empty {
+      color: #8b9cb3;
+      font-style: italic;
+    }
+
+    /* FLUXOGRAMA */
+
+    #flowSection {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .flow-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
 
     #flowViewport {
       min-height: 250px;
       max-height: 75vh;
       overflow: auto;
-      background: white;
+      background: #ffffff;
       color: #111827;
       border-radius: 9px;
       padding: 18px;
+      margin-top: 16px;
     }
 
     #flowViewport svg {
@@ -149,54 +271,173 @@
       color: #526174;
     }
 
-    .small { font-size: 12px; color: var(--muted); margin-top: 10px; }
+    .small {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+
+    /* RESPONSIVIDADE */
 
     @media (max-width: 760px) {
-      .results { grid-template-columns: 1fr; }
-      .panel { padding: 15px; }
-      header { padding: 18px 0; }
+      header {
+        padding: 13px 16px;
+      }
+
+      .header-inner {
+        gap: 12px;
+      }
+
+      .brand-area {
+        gap: 9px;
+      }
+
+      .robot-logo {
+        width: 42px;
+        height: 42px;
+      }
+
+      .brand {
+        font-size: 23px;
+      }
+
+      .subtitle {
+        font-size: 11px;
+      }
+
+      .company-logo {
+        height: 40px;
+        max-width: 115px;
+      }
+
+      .results {
+        grid-template-columns: 1fr;
+      }
+
+      main {
+        width: calc(100% - 20px);
+        padding-top: 16px;
+      }
+
+      .panel {
+        padding: 15px;
+      }
+
+      #flowViewport {
+        padding: 8px;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .robot-logo {
+        width: 34px;
+        height: 34px;
+      }
+
+      .brand {
+        font-size: 20px;
+      }
+
+      .subtitle {
+        max-width: 175px;
+      }
+
+      .company-logo {
+        height: 34px;
+        max-width: 85px;
+      }
+
+      .header-inner {
+        gap: 8px;
+      }
     }
   </style>
 </head>
 
 <body>
+
 <header>
-  <div class="wrap">
-    <div class="brand">Start<span>Code</span></div>
-    <div class="subtitle">Assistente de programação para robótica educacional</div>
+  <div class="header-inner">
+
+    <!-- Robô Start à esquerda do título -->
+    <div class="brand-area">
+      <img
+        class="robot-logo"
+        src="/start.png"
+        alt="Robô Start Maker"
+      >
+
+      <div class="brand-text">
+        <h1 class="brand">Start<span>Code</span></h1>
+        <div class="subtitle">
+          Assistente de programação para robótica educacional
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo da Start Maker à direita -->
+    <img
+      class="company-logo"
+      src="/logo.png"
+      alt="Logo Start Maker"
+    >
+
   </div>
 </header>
 
-<main class="wrap">
+<main>
   <section class="panel">
     <h2>Descreva seu projeto</h2>
-    <textarea id="prompt" placeholder="Ex.: Leia um botão no pino 2 e acenda um LED no pino 13 quando ele for pressionado."></textarea>
+
+    <textarea
+      id="prompt"
+      placeholder="Ex.: Leia um botão no pino 2 e acenda um LED no pino 13 quando ele for pressionado."
+    ></textarea>
 
     <div class="actions">
-      <button class="primary" id="generate">Gerar código</button>
-      <button class="flow-button" id="generateFlow" disabled>Gerar fluxograma</button>
-      <button id="clear">Limpar</button>
+      <button class="primary" id="generate">
+        Gerar código
+      </button>
+
+      <button class="flow-button" id="generateFlow" disabled>
+        Gerar fluxograma
+      </button>
+
+      <button id="clear">
+        Limpar
+      </button>
     </div>
 
-    <div id="status" role="status" aria-live="polite">Pronto para começar.</div>
+    <div id="status" role="status" aria-live="polite">
+      Pronto para começar.
+    </div>
   </section>
 
   <section class="results">
     <article class="panel">
       <h2>Código Arduino</h2>
+
       <button id="copyCode">Copiar código</button>
+
       <pre><code id="code" class="empty">O código aparecerá aqui.</code></pre>
     </article>
 
     <article class="panel">
       <h2>Explicação didática</h2>
+
       <button id="copyExplanation">Copiar explicação</button>
-      <div id="explanation" class="explanation empty">A explicação aparecerá aqui.</div>
+
+      <div id="explanation" class="explanation empty">
+        A explicação aparecerá aqui.
+      </div>
     </article>
   </section>
 
   <section class="panel" id="flowSection">
-    <h2 id="flowTitle">Fluxograma do código Arduino</h2>
+    <div class="flow-heading">
+      <h2 id="flowTitle">Fluxograma do código Arduino</h2>
+    </div>
 
     <div class="toolbar">
       <button id="downloadPng">Exportar PNG</button>
@@ -205,9 +446,14 @@
     </div>
 
     <div id="flowViewport">
-      <div class="placeholder">O fluxograma aparecerá aqui.</div>
+      <div class="placeholder">
+        O fluxograma aparecerá aqui.
+      </div>
     </div>
-    <p class="small">O diagrama é construído a partir da lógica do código Arduino.</p>
+
+    <p class="small">
+      O diagrama representa a lógica identificada no código Arduino.
+    </p>
   </section>
 </main>
 
@@ -226,6 +472,7 @@
 
   function hasCode() {
     const code = $('code').textContent.trim();
+
     return code.length > 0 &&
       !$('code').classList.contains('empty') &&
       code !== 'O código aparecerá aqui.';
@@ -254,8 +501,12 @@
       [...el.attributes].forEach(attr => {
         if (
           attr.name.toLowerCase().startsWith('on') ||
-          ['src', 'href', 'srcdoc', 'formaction'].includes(attr.name.toLowerCase())
-        ) el.removeAttribute(attr.name);
+          ['src', 'href', 'srcdoc', 'formaction'].includes(
+            attr.name.toLowerCase()
+          )
+        ) {
+          el.removeAttribute(attr.name);
+        }
       });
     });
 
@@ -274,18 +525,22 @@
     busy = true;
     diagramText = '';
     renderedSvg = null;
+
     $('flowSection').style.display = 'none';
     $('code').textContent = 'Gerando código...';
     $('code').classList.add('empty');
     $('explanation').textContent = 'Preparando explicação...';
     $('explanation').classList.add('empty');
+
     updateButtons();
     status('Gerando código Arduino...');
 
     try {
       const response = await fetch('/api/gerar-codigo', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ prompt })
       });
 
@@ -297,10 +552,13 @@
 
       displayCode(data.code);
       displayExplanation(data.explanation);
-      status('Código gerado. Agora você pode gerar o fluxograma.');
+
+      status('Código gerado. Você já pode criar o fluxograma.');
     } catch (error) {
-      console.error(error);
+      console.error('[StartCode][codigo]', error);
+
       status(error.message || 'Falha na geração do código.', true);
+
       $('code').textContent = 'Não foi possível gerar o código.';
       $('code').classList.add('empty');
     } finally {
@@ -316,23 +574,37 @@
     }
 
     if (!window.mermaid || typeof window.mermaid.render !== 'function') {
-      status('A biblioteca visual não carregou. Verifique a conexão com a internet ou o bloqueio do CDN.', true);
+      status(
+        'A biblioteca de fluxogramas não carregou. Verifique sua conexão com a internet.',
+        true
+      );
       return;
     }
 
     flowBusy = true;
     updateButtons();
+
     $('flowSection').style.display = 'block';
     $('flowTitle').textContent = 'Fluxograma do código Arduino';
-    $('flowViewport').innerHTML = '<div class="placeholder">Analisando o código e construindo o diagrama...</div>';
-    $('flowSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    status('Enviando o código Arduino para análise...');
+    $('flowViewport').innerHTML =
+      '<div class="placeholder">Analisando o código Arduino...</div>';
+
+    $('flowSection').scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+
+    status('Analisando o código e criando o fluxograma...');
 
     try {
       const response = await fetch('/api/gerar-fluxograma', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: $('code').textContent })
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          code: $('code').textContent
+        })
       });
 
       const raw = await response.text();
@@ -341,20 +613,26 @@
       try {
         data = JSON.parse(raw);
       } catch (_) {
-        throw new Error('O servidor não retornou JSON. Verifique a implantação da Vercel.');
+        throw new Error(
+          'O servidor não retornou uma resposta válida. Verifique a implantação da Vercel.'
+        );
       }
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || `Erro HTTP ${response.status} ao gerar o fluxograma.`);
+        throw new Error(
+          data.error || `Erro HTTP ${response.status} ao gerar o fluxograma.`
+        );
       }
 
       diagramText = String(data.diagram || '').trim();
 
       if (!/^flowchart\s+(TD|TB|LR|RL|BT)\b/i.test(diagramText)) {
-        throw new Error('A IA retornou um diagrama em formato inválido.');
+        throw new Error('A IA retornou um fluxograma em formato inválido.');
       }
 
-      $('flowTitle').textContent = data.title || 'Fluxograma do código Arduino';
+      $('flowTitle').textContent =
+        data.title || 'Fluxograma do código Arduino';
+
       status('Desenhando o fluxograma...');
 
       const result = await window.mermaid.render(
@@ -366,7 +644,9 @@
 
       const svg = $('flowViewport').querySelector('svg');
 
-      if (!svg) throw new Error('O Mermaid não produziu uma imagem SVG.');
+      if (!svg) {
+        throw new Error('Não foi possível desenhar o fluxograma.');
+      }
 
       svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
       svg.style.maxWidth = 'none';
@@ -374,14 +654,18 @@
       svg.style.background = '#ffffff';
 
       renderedSvg = svg.cloneNode(true);
+
       status('Fluxograma gerado com sucesso. Você pode exportá-lo.');
     } catch (error) {
       console.error('[StartCode][fluxograma]', error);
+
       $('flowViewport').innerHTML = '';
 
       const message = document.createElement('div');
       message.className = 'placeholder error';
-      message.textContent = error.message || 'Falha ao gerar o fluxograma.';
+      message.textContent =
+        error.message || 'Falha ao gerar o fluxograma.';
+
       $('flowViewport').appendChild(message);
 
       status(error.message || 'Falha ao gerar o fluxograma.', true);
@@ -392,18 +676,31 @@
   }
 
   function svgText() {
-    if (!renderedSvg) throw new Error('Não há fluxograma para exportar.');
+    if (!renderedSvg) {
+      throw new Error('Não há fluxograma para exportar.');
+    }
 
     const svg = renderedSvg.cloneNode(true);
+
     svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
 
-    if (!svg.getAttribute('width')) svg.setAttribute('width', '1200');
-    if (!svg.getAttribute('height')) svg.setAttribute('height', '800');
+    if (!svg.getAttribute('width')) {
+      svg.setAttribute('width', '1200');
+    }
 
-    const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    if (!svg.getAttribute('height')) {
+      svg.setAttribute('height', '800');
+    }
+
+    const background = document.createElementNS(
+      'http://www.w3.org/2000/svg',
+      'rect'
+    );
+
     background.setAttribute('width', '100%');
     background.setAttribute('height', '100%');
     background.setAttribute('fill', '#ffffff');
+
     svg.insertBefore(background, svg.firstChild);
 
     return new XMLSerializer().serializeToString(svg);
@@ -412,20 +709,26 @@
   function download(blob, filename) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
+
     link.href = url;
     link.download = filename;
+
     document.body.appendChild(link);
     link.click();
     link.remove();
+
     setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
 
   function exportSvg() {
     try {
       download(
-        new Blob([svgText()], { type: 'image/svg+xml;charset=utf-8' }),
+        new Blob([svgText()], {
+          type: 'image/svg+xml;charset=utf-8'
+        }),
         'startcode-fluxograma.svg'
       );
+
       status('Arquivo SVG exportado.');
     } catch (error) {
       status(error.message, true);
@@ -433,11 +736,17 @@
   }
 
   function exportPng() {
+    let url;
+
     try {
       const text = svgText();
-      const url = URL.createObjectURL(
-        new Blob([text], { type: 'image/svg+xml;charset=utf-8' })
+
+      url = URL.createObjectURL(
+        new Blob([text], {
+          type: 'image/svg+xml;charset=utf-8'
+        })
       );
+
       const image = new Image();
 
       image.onload = () => {
@@ -445,12 +754,14 @@
         const width = Math.ceil(box?.width || image.width || 1200);
         const height = Math.ceil(box?.height || image.height || 800);
         const scale = Math.min(2, 3000 / Math.max(width, height));
+
         const canvas = document.createElement('canvas');
 
         canvas.width = Math.ceil(width * scale);
         canvas.height = Math.ceil(height * scale);
 
         const ctx = canvas.getContext('2d');
+
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.scale(scale, scale);
@@ -471,22 +782,29 @@
 
       image.onerror = () => {
         URL.revokeObjectURL(url);
-        status('Falha ao converter o diagrama para PNG. Tente exportar em SVG.', true);
+        status('Falha ao converter o diagrama para PNG.', true);
       };
 
       image.src = url;
     } catch (error) {
+      if (url) URL.revokeObjectURL(url);
       status(error.message, true);
     }
   }
 
   $('generate').addEventListener('click', gerarCodigo);
+
   $('generateFlow').addEventListener('click', gerarFluxograma);
+
   $('downloadPng').addEventListener('click', exportPng);
+
   $('downloadSvg').addEventListener('click', exportSvg);
 
   $('copyDiagram').addEventListener('click', async () => {
-    if (!diagramText) return status('Gere um fluxograma primeiro.', true);
+    if (!diagramText) {
+      status('Gere um fluxograma primeiro.', true);
+      return;
+    }
 
     try {
       await navigator.clipboard.writeText(diagramText);
@@ -497,7 +815,10 @@
   });
 
   $('copyCode').addEventListener('click', async () => {
-    if (!hasCode()) return status('Não há código para copiar.', true);
+    if (!hasCode()) {
+      status('Não há código para copiar.', true);
+      return;
+    }
 
     try {
       await navigator.clipboard.writeText($('code').textContent);
@@ -520,18 +841,25 @@
     if (busy || flowBusy) return;
 
     $('prompt').value = '';
+
     $('code').textContent = 'O código aparecerá aqui.';
     $('code').classList.add('empty');
+
     $('explanation').textContent = 'A explicação aparecerá aqui.';
     $('explanation').classList.add('empty');
+
     $('flowSection').style.display = 'none';
-    $('flowViewport').innerHTML = '<div class="placeholder">O fluxograma aparecerá aqui.</div>';
+    $('flowViewport').innerHTML =
+      '<div class="placeholder">O fluxograma aparecerá aqui.</div>';
+
     diagramText = '';
     renderedSvg = null;
+
     updateButtons();
     status('Pronto para começar.');
   });
 
+  // Inicialização da biblioteca de fluxogramas
   if (window.mermaid) {
     window.mermaid.initialize({
       startOnLoad: false,
@@ -553,7 +881,10 @@
         useMaxWidth: false
       }
     });
+  } else {
+    console.error('[StartCode] A biblioteca Mermaid não foi carregada.');
   }
 </script>
+
 </body>
 </html>
