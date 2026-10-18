@@ -5,7 +5,6 @@ const path = require('path');
 const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
-
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'frontend')));
@@ -16,102 +15,46 @@ const ai = new GoogleGenAI({
 
 const MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 
-function extrairJson(texto) {
-  return texto
-    .replace(/^```json\s*/i, '')
-    .replace(/^```\s*/i, '')
-    .replace(/\s*```$/i, '')
-    .trim();
+function parseJson(text) {
+  const cleaned = String(text || '')
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '');
+
+  return JSON.parse(cleaned);
 }
 
-function extrairCampo(texto, campo) {
-  const marcador = `"${campo}"`;
-  const inicioCampo = texto.indexOf(marcador);
-
-  if (inicioCampo === -1) return null;
-
-  const doisPontos = texto.indexOf(':', inicioCampo);
-  if (doisPontos === -1) return null;
-
-  let i = doisPontos + 1;
-
-  while (i < texto.length && /\s/.test(texto[i])) i++;
-
-  if (texto[i] !== '"') return null;
-
-  i++;
-
-  let valor = '';
-  let escape = false;
-
-  for (; i < texto.length; i++) {
-    const c = texto[i];
-
-    if (escape) {
-      valor += c === 'n' ? '\n'
-        : c === 'r' ? '\r'
-        : c === 't' ? '\t'
-        : c;
-      escape = false;
-    } else if (c === '\\') {
-      escape = true;
-    } else if (c === '"') {
-      return valor;
-    } else {
-      valor += c;
-    }
-  }
-
-  return null;
-}
-
-// GERAÇÃO DO CÓDIGO ARDUINO
 app.post('/api/gerar-codigo', async (req, res) => {
-  const inicio = Date.now();
-
   try {
     const prompt = String(req.body?.prompt || '').trim();
 
     if (!prompt) {
       return res.status(400).json({
         success: false,
-        error: 'Descreva o projeto que deseja criar.'
+        error: 'Descreva o projeto Arduino.'
       });
     }
 
     if (!process.env.GEMINI_API_KEY) {
       return res.status(500).json({
         success: false,
-        error: 'A chave GEMINI_API_KEY não está configurada na Vercel.'
+        error: 'GEMINI_API_KEY não está configurada na Vercel.'
       });
     }
 
-    const promptCompleto = `
-Você é o StartCode, especialista em Arduino e robótica educacional.
-
-Pedido do aluno:
-${prompt}
-
-Retorne exclusivamente JSON válido com as chaves "code" e "explanation".
-
-{
-  "code": "código C++ completo para Arduino",
-  "explanation": "explicação didática em HTML simples"
-}
-
-Regras:
-- O código deve ser completo e conter setup() e loop().
-- Use bibliotecas apropriadas quando necessárias.
-- Não invente componentes ou conexões não informados.
-- Explicite suposições importantes na explicação.
-- Explique o funcionamento em português brasileiro.
-- Use HTML simples na explicação.
-- Não afirme que o código foi testado fisicamente.
-`;
-
     const response = await ai.models.generateContent({
       model: MODEL,
-      contents: promptCompleto,
+      contents: `Você é o StartCode, especialista em Arduino.
+Crie um código Arduino completo para este pedido: ${prompt}
+
+Retorne somente JSON válido:
+{
+  "code": "código C++ completo",
+  "explanation": "explicação didática em HTML"
+}
+
+Inclua setup() e loop(). Explique as suposições sobre componentes e pinos.
+Não afirme que o código foi testado fisicamente.`,
       config: {
         responseMimeType: 'application/json',
         maxOutputTokens: 3000,
@@ -119,93 +62,82 @@ Regras:
       }
     });
 
-    const dados = JSON.parse(extrairJson(response.text || ''));
+    const data = parseJson(response.text);
 
-    if (!dados.code || !dados.explanation) {
-      throw new Error('Resposta incompleta do modelo.');
+    if (
+      typeof data.code !== 'string' ||
+      typeof data.explanation !== 'string' ||
+      !data.code.trim()
+    ) {
+      throw new Error('A resposta do modelo não contém os campos esperados.');
     }
 
-    console.log(`[StartCode] Código gerado em ${Date.now() - inicio} ms`);
-
-    return res.json({
+    res.json({
       success: true,
-      code: dados.code,
-      explanation: dados.explanation
+      code: data.code,
+      explanation: data.explanation
     });
-  } catch (erro) {
-    console.error('[StartCode] Erro na geração:', erro);
+  } catch (error) {
+    console.error('[StartCode][codigo]', error);
 
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      error: 'Não foi possível gerar o código Arduino. Tente novamente.'
+      error: 'Falha ao gerar o código Arduino. Consulte os logs da Vercel.'
     });
   }
 });
 
-// GERAÇÃO DO FLUXOGRAMA A PARTIR DO CÓDIGO ARDUINO
 app.post('/api/gerar-fluxograma', async (req, res) => {
   try {
-    const codigo = String(req.body?.code || '').trim();
+    const code = String(req.body?.code || '').trim();
 
-    if (!codigo) {
+    if (!code) {
       return res.status(400).json({
         success: false,
-        error: 'Gere ou informe o código Arduino antes de criar o fluxograma.'
+        error: 'Nenhum código Arduino foi recebido.'
+      });
+    }
+
+    if (code.length > 20000) {
+      return res.status(413).json({
+        success: false,
+        error: 'O código ultrapassa o limite de 20.000 caracteres.'
       });
     }
 
     if (!process.env.GEMINI_API_KEY) {
       return res.status(500).json({
         success: false,
-        error: 'A chave GEMINI_API_KEY não está configurada na Vercel.'
+        error: 'GEMINI_API_KEY não está configurada na Vercel.'
       });
     }
-
-    if (codigo.length > 20000) {
-      return res.status(413).json({
-        success: false,
-        error: 'O código é muito longo para gerar o fluxograma.'
-      });
-    }
-
-    const instrucao = `
-Você é especialista em algoritmos, Arduino e fluxogramas didáticos.
-
-Analise o código Arduino abaixo e represente sua lógica em um fluxograma Mermaid.
-
-CÓDIGO ARDUINO:
-<codigo>
-${codigo}
-</codigo>
-
-Retorne exclusivamente um JSON válido no formato:
-{
-  "title": "Título curto do fluxograma",
-  "diagram": "flowchart TD\\n..."
-}
-
-REGRAS OBRIGATÓRIAS:
-- Use Mermaid flowchart TD.
-- O fluxograma deve refletir o código fornecido, não um programa imaginado.
-- Inclua Início e Fim quando representarem corretamente o fluxo.
-- Represente setup() como inicialização e loop() como repetição contínua.
-- Use retângulos para processos.
-- Use losangos para condições e decisões.
-- Identifique as saídas das decisões como Sim e Não, ou como verdadeiro e falso quando for mais preciso.
-- Mostre os caminhos alternativos de if/else.
-- Represente repetições, esperas, leituras de sensores e acionamentos relevantes.
-- Se existir loop() infinito típico do Arduino, mostre claramente o retorno ao início do ciclo, sem sugerir que o programa termina sozinho.
-- Mantenha os textos curtos, em português brasileiro.
-- Use identificadores únicos e simples nos nós.
-- Use sintaxe Mermaid válida.
-- Não use HTML, Markdown externo, imagens, links ou blocos de código dentro de diagram.
-- Escape aspas dentro dos rótulos quando necessário.
-- Não acrescente explicações fora do JSON.
-`;
 
     const response = await ai.models.generateContent({
       model: MODEL,
-      contents: instrucao,
+      contents: `Analise o código Arduino e produza um fluxograma Mermaid válido.
+
+CÓDIGO:
+${code}
+
+Retorne exclusivamente JSON válido:
+{
+  "title": "Fluxograma do programa Arduino",
+  "diagram": "flowchart TD\\nA([Início]) --> B[Inicializar]"
+}
+
+Regras:
+- diagram deve começar com flowchart TD.
+- Use identificadores simples: A, B, C, D...
+- Use [Texto] para processos.
+- Use {Condição?} para decisões.
+- Use ([Início]) e ([Fim]) para terminais quando apropriado.
+- Represente setup(), loop(), condições if/else, leituras, esperas e acionamentos importantes.
+- Em decisões, escreva os rótulos das ligações com Sim e Não.
+- Mostre o retorno do loop contínuo do Arduino.
+- Use textos curtos em português.
+- Não inclua blocos Markdown, HTML, links, diretivas Mermaid ou explicações externas.
+- Garanta que todas as ligações apontem para identificadores existentes.
+- Não invente comportamentos que não estejam no código.`,
       config: {
         responseMimeType: 'application/json',
         maxOutputTokens: 2500,
@@ -213,33 +145,32 @@ REGRAS OBRIGATÓRIAS:
       }
     });
 
-    const dados = JSON.parse(extrairJson(response.text || ''));
+    const data = parseJson(response.text);
+    const diagram = String(data.diagram || '').trim();
 
-    if (
-      typeof dados.diagram !== 'string' ||
-      !dados.diagram.trim().startsWith('flowchart')
-    ) {
-      throw new Error('O modelo não retornou um fluxograma Mermaid válido.');
+    if (!/^flowchart\s+(TD|TB|LR|RL|BT)\b/i.test(diagram)) {
+      throw new Error('O modelo retornou um diagrama sem a declaração flowchart válida.');
     }
 
-    // Restringe a saída a texto de fluxograma, evitando diretivas externas.
     if (
-      /%%\{|click\s+\w+|https?:\/\/|javascript:|<script|<iframe/i.test(dados.diagram)
+      /<script|<iframe|javascript:|%%\{|^\s*click\s+/im.test(diagram)
     ) {
-      throw new Error('O fluxograma retornado contém conteúdo não permitido.');
+      throw new Error('O diagrama contém conteúdo não permitido.');
     }
 
-    return res.json({
+    console.log('[StartCode][fluxograma] Diagrama recebido:', diagram.length, 'caracteres');
+
+    res.json({
       success: true,
-      title: String(dados.title || 'Fluxograma do código Arduino').slice(0, 120),
-      diagram: dados.diagram
+      title: String(data.title || 'Fluxograma do código Arduino').slice(0, 120),
+      diagram
     });
-  } catch (erro) {
-    console.error('[StartCode] Erro no fluxograma:', erro);
+  } catch (error) {
+    console.error('[StartCode][fluxograma]', error);
 
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      error: 'Não foi possível gerar o fluxograma. Tente novamente.'
+      error: 'A IA não conseguiu produzir o fluxograma. Consulte os logs da Vercel para identificar a causa.'
     });
   }
 });
