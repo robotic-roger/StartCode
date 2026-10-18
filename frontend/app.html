@@ -7,10 +7,9 @@
   <meta name="theme-color" content="#071426">
   <title>StartCode | Start Maker</title>
 
-  <!-- Favicon do robô Start -->
   <link rel="icon" type="image/png" href="/start.png">
+  <link rel="apple-touch-icon" href="/start.png">
 
-  <!-- Biblioteca de fluxogramas -->
   <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 
   <style>
@@ -38,7 +37,7 @@
       font-family: Arial, sans-serif;
     }
 
-    /* CABEÇALHO */
+    /* CABEÇALHO STARTCODE */
 
     header {
       padding: 15px 22px;
@@ -64,8 +63,8 @@
 
     .robot-logo {
       display: block;
-      width: 52px;
-      height: 52px;
+      width: 60px;
+      height: 60px;
       object-fit: contain;
       flex-shrink: 0;
     }
@@ -76,7 +75,7 @@
 
     .brand {
       margin: 0;
-      font-size: 28px;
+      font-size: 30px;
       line-height: 1.15;
       font-weight: 800;
       letter-spacing: -0.8px;
@@ -96,7 +95,7 @@
 
     .company-logo {
       display: block;
-      height: 48px;
+      height: 54px;
       width: auto;
       max-width: 220px;
       object-fit: contain;
@@ -294,8 +293,8 @@
       }
 
       .robot-logo {
-        width: 42px;
-        height: 42px;
+        width: 46px;
+        height: 46px;
       }
 
       .brand {
@@ -359,13 +358,13 @@
 
 <header>
   <div class="header-inner">
-
-    <!-- Robô Start à esquerda do título -->
     <div class="brand-area">
       <img
         class="robot-logo"
         src="/start.png"
         alt="Robô Start Maker"
+        width="60"
+        height="60"
       >
 
       <div class="brand-text">
@@ -376,13 +375,11 @@
       </div>
     </div>
 
-    <!-- Logo da Start Maker à direita -->
     <img
       class="company-logo"
       src="/logo.png"
       alt="Logo Start Maker"
     >
-
   </div>
 </header>
 
@@ -396,17 +393,9 @@
     ></textarea>
 
     <div class="actions">
-      <button class="primary" id="generate">
-        Gerar código
-      </button>
-
-      <button class="flow-button" id="generateFlow" disabled>
-        Gerar fluxograma
-      </button>
-
-      <button id="clear">
-        Limpar
-      </button>
+      <button class="primary" id="generate">Gerar código</button>
+      <button class="flow-button" id="generateFlow" disabled>Gerar fluxograma</button>
+      <button id="clear">Limpar</button>
     </div>
 
     <div id="status" role="status" aria-live="polite">
@@ -417,17 +406,13 @@
   <section class="results">
     <article class="panel">
       <h2>Código Arduino</h2>
-
       <button id="copyCode">Copiar código</button>
-
       <pre><code id="code" class="empty">O código aparecerá aqui.</code></pre>
     </article>
 
     <article class="panel">
       <h2>Explicação didática</h2>
-
       <button id="copyExplanation">Copiar explicação</button>
-
       <div id="explanation" class="explanation empty">
         A explicação aparecerá aqui.
       </div>
@@ -446,9 +431,7 @@
     </div>
 
     <div id="flowViewport">
-      <div class="placeholder">
-        O fluxograma aparecerá aqui.
-      </div>
+      <div class="placeholder">O fluxograma aparecerá aqui.</div>
     </div>
 
     <p class="small">
@@ -538,9 +521,7 @@
     try {
       const response = await fetch('/api/gerar-codigo', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })
       });
 
@@ -552,13 +533,10 @@
 
       displayCode(data.code);
       displayExplanation(data.explanation);
-
       status('Código gerado. Você já pode criar o fluxograma.');
     } catch (error) {
       console.error('[StartCode][codigo]', error);
-
       status(error.message || 'Falha na geração do código.', true);
-
       $('code').textContent = 'Não foi possível gerar o código.';
       $('code').classList.add('empty');
     } finally {
@@ -599,12 +577,8 @@
     try {
       const response = await fetch('/api/gerar-fluxograma', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          code: $('code').textContent
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: $('code').textContent })
       });
 
       const raw = await response.text();
@@ -663,11 +637,9 @@
 
       const message = document.createElement('div');
       message.className = 'placeholder error';
-      message.textContent =
-        error.message || 'Falha ao gerar o fluxograma.';
+      message.textContent = error.message || 'Falha ao gerar o fluxograma.';
 
       $('flowViewport').appendChild(message);
-
       status(error.message || 'Falha ao gerar o fluxograma.', true);
     } finally {
       flowBusy = false;
@@ -681,16 +653,10 @@
     }
 
     const svg = renderedSvg.cloneNode(true);
-
     svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
 
-    if (!svg.getAttribute('width')) {
-      svg.setAttribute('width', '1200');
-    }
-
-    if (!svg.getAttribute('height')) {
-      svg.setAttribute('height', '800');
-    }
+    if (!svg.getAttribute('width')) svg.setAttribute('width', '1200');
+    if (!svg.getAttribute('height')) svg.setAttribute('height', '800');
 
     const background = document.createElementNS(
       'http://www.w3.org/2000/svg',
@@ -723,12 +689,9 @@
   function exportSvg() {
     try {
       download(
-        new Blob([svgText()], {
-          type: 'image/svg+xml;charset=utf-8'
-        }),
+        new Blob([svgText()], { type: 'image/svg+xml;charset=utf-8' }),
         'startcode-fluxograma.svg'
       );
-
       status('Arquivo SVG exportado.');
     } catch (error) {
       status(error.message, true);
@@ -742,9 +705,7 @@
       const text = svgText();
 
       url = URL.createObjectURL(
-        new Blob([text], {
-          type: 'image/svg+xml;charset=utf-8'
-        })
+        new Blob([text], { type: 'image/svg+xml;charset=utf-8' })
       );
 
       const image = new Image();
@@ -754,14 +715,12 @@
         const width = Math.ceil(box?.width || image.width || 1200);
         const height = Math.ceil(box?.height || image.height || 800);
         const scale = Math.min(2, 3000 / Math.max(width, height));
-
         const canvas = document.createElement('canvas');
 
         canvas.width = Math.ceil(width * scale);
         canvas.height = Math.ceil(height * scale);
 
         const ctx = canvas.getContext('2d');
-
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.scale(scale, scale);
@@ -793,11 +752,8 @@
   }
 
   $('generate').addEventListener('click', gerarCodigo);
-
   $('generateFlow').addEventListener('click', gerarFluxograma);
-
   $('downloadPng').addEventListener('click', exportPng);
-
   $('downloadSvg').addEventListener('click', exportSvg);
 
   $('copyDiagram').addEventListener('click', async () => {
@@ -841,7 +797,6 @@
     if (busy || flowBusy) return;
 
     $('prompt').value = '';
-
     $('code').textContent = 'O código aparecerá aqui.';
     $('code').classList.add('empty');
 
@@ -859,7 +814,6 @@
     status('Pronto para começar.');
   });
 
-  // Inicialização da biblioteca de fluxogramas
   if (window.mermaid) {
     window.mermaid.initialize({
       startOnLoad: false,
@@ -884,6 +838,8 @@
   } else {
     console.error('[StartCode] A biblioteca Mermaid não foi carregada.');
   }
+
+  updateButtons();
 </script>
 
 </body>
