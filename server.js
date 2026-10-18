@@ -10,7 +10,6 @@ app.use(cors());
 
 app.use(express.static(path.join(__dirname, 'frontend')));
 
-// Inicialização direta utilizando a variável de ambiente da Vercel
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.post('/api/gerar-codigo', async (req, res) => {
@@ -29,14 +28,14 @@ Responde estritamente num formato JSON válido (sem blocos de código markdown o
   "explanation": "explicação didática detalhada em HTML"
 }`;
 
+        // Utilizando o modelo padrão atualizado do SDK da Google Gen AI
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.5-flash',
             contents: promptCompleto
         });
 
         let textoResposta = response.text ? response.text.trim() : "";
         
-        // Limpeza de eventuais blocos de markdown devolvidos pela IA
         if (textoResposta.startsWith("```json")) {
             textoResposta = textoResposta.replace(/^```json/, "").replace(/```$/, "").trim();
         } else if (textoResposta.startsWith("```")) {
