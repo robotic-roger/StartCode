@@ -10,7 +10,6 @@ app.use(cors());
 
 app.use(express.static(path.join(__dirname, 'frontend')));
 
-// Inicializa o cliente do Google Gen AI
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.post('/api/gerar-codigo', async (req, res) => {
@@ -36,19 +35,18 @@ O teu objetivo é ler o pedido do aluno em linguagem natural e gerar estritament
   ]
 }
 REGRAS CRÍTICAS:
-1. Analisa detalhadamente o pedido do aluno (componentes, portas digitais/analógicas, bibliotecas necessárias e lógica pretendida).
+1. Analisa detalhadamente o pedido do aluno.
 2. Gera o código C++ válido e estruturado para Arduino IDE (com setup() e loop() corretos).
-3. NUNCA utilizes um código padrão de Blink a menos que o aluno o peça expressamente.
-4. Responde APENAS com o objeto JSON válido, sem texto adicional ou marcadores markdown.`;
+3. Responde APENAS com o objeto JSON válido, sem texto adicional ou marcadores markdown.`;
 
+        // Chamada otimizada para o SDK @google/genai
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
-            contents: [
-                { role: 'user', parts: [{ text: `${systemInstruction}\n\nPedido do aluno: ${prompt}` }] }
-            ]
+            model: 'gemini-2.0-flash',
+            contents: `${systemInstruction}\n\nPedido do aluno: ${prompt}`
         });
 
-        const respostaTexto = response.text;
+        // Extrai o texto da resposta de forma segura
+        const respostaTexto = response.text || (response.candidates && response.candidates[0]?.content?.parts[0]?.text) || "";
         console.log("Resposta bruta da IA:", respostaTexto);
 
         let jsonLimpo = respostaTexto.trim();
@@ -73,10 +71,8 @@ REGRAS CRÍTICAS:
     }
 });
 
-// Redirecionamento seguro para o frontend
 app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'app.html'));
 });
 
-// Exportação para ambiente Serverless (Vercel)
 module.exports = app;
