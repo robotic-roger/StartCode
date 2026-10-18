@@ -4,255 +4,537 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StartCode - Assistente IA para Codificação</title>
-  <link rel="icon" type="image/png" href="/start.png">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="theme-color" content="#071426">
+  <title>StartCode | Start Maker</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #071426;
+      --panel: #101f35;
+      --panel2: #0b192b;
+      --blue: #1684ff;
+      --yellow: #ffcc00;
+      --text: #f2f6ff;
+      --muted: #a9b8ce;
+      --border: #263954;
+      --green: #54d69a;
+      --red: #ff7b7b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 22px;
+      border-bottom: 1px solid var(--border);
+      background: #09182b;
+    }
+
+    .header-inner, main {
+      width: min(1100px, calc(100% - 32px));
+      margin: auto;
+    }
+
+    .brand {
+      font-size: 27px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+    }
+
+    .brand span { color: var(--yellow); }
+
+    .subtitle {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    main { padding: 28px 0 50px; }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 19px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 125px;
+      padding: 15px;
+      resize: vertical;
+      color: var(--text);
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font: inherit;
+      line-height: 1.6;
+    }
+
+    textarea:focus {
+      outline: 2px solid var(--blue);
+      outline-offset: 1px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 17px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .6;
+    }
+
+    .primary {
+      background: var(--yellow);
+      color: #172033;
+    }
+
+    .secondary {
+      background: #20334d;
+      color: var(--text);
+      border: 1px solid #354b68;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 16px;
+      min-height: 22px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      background: var(--green);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot.loading {
+      background: var(--yellow);
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { opacity: .35; }
+      to { opacity: 1; }
+    }
+
+    .results {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .result-panel { min-width: 0; }
+
+    .result-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .result-heading h2 { margin: 0; }
+
+    pre {
+      margin: 0;
+      min-height: 200px;
+      max-height: 650px;
+      overflow: auto;
+      padding: 17px;
+      background: #06111f;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: #d8e7ff;
+      white-space: pre;
+      font: 13px/1.65 Consolas, Monaco, monospace;
+      tab-size: 2;
+    }
+
+    .explanation {
+      min-height: 200px;
+      line-height: 1.75;
+      overflow-wrap: anywhere;
+    }
+
+    .explanation h3 { color: var(--yellow); }
+
+    .explanation code {
+      background: #06111f;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+
+    .explanation ul, .explanation ol { padding-left: 23px; }
+
+    .empty {
+      color: #8294ad;
+      font-style: italic;
+    }
+
+    .error { color: var(--red); }
+
+    .small {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 760px) {
+      .results { grid-template-columns: 1fr; }
+      .panel { padding: 16px; }
+      header { padding: 18px 0; }
+      .brand { font-size: 24px; }
+    }
+  </style>
 </head>
 
-<body class="bg-[#0b1329] text-gray-100 min-h-screen flex flex-col justify-between">
-
-  <header class="w-full bg-[#0b1329] border-b border-gray-800 py-4 px-6 flex items-center justify-between gap-4 shadow-md">
-    <div class="flex items-center space-x-3 min-w-0">
-      <img src="/start.png" alt="Robô Start" class="w-10 h-10 object-contain">
-      <h1 class="text-xl md:text-2xl font-bold tracking-wide text-white">
-        StartCode - Assistente IA para Codificação
-      </h1>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand">Start<span>Code</span></div>
+      <div class="subtitle">Assistente de programação para robótica educacional</div>
     </div>
-    <img src="/logo.png" alt="Logo Start Maker" class="h-8 object-contain">
   </header>
 
-  <main class="flex-grow p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <main>
+    <section class="panel">
+      <h2>O que vamos construir?</h2>
 
-    <section class="bg-[#121c3b] border border-gray-800 rounded-xl p-5 flex flex-col justify-between shadow-lg">
-      <div>
-        <label for="promptInput" class="block text-sm font-semibold text-gray-200 mb-2">
-          ✏️ Escreva sua ideia aqui
-        </label>
+      <label for="prompt">Descreva seu projeto Arduino</label>
+      <textarea
+        id="prompt"
+        placeholder="Ex.: Crie um programa para acender um LED no pino 13 durante um segundo e apagá-lo durante outro segundo."
+      ></textarea>
 
-        <textarea
-          id="promptInput"
-          rows="8"
-          maxlength="4000"
-          placeholder="Ex: acenda um LED na porta D3 a cada meio segundo..."
-          class="w-full bg-[#070b19] border border-gray-700 rounded-lg p-3 text-gray-100 focus:outline-none focus:border-blue-500 resize-none text-sm"
-        ></textarea>
-
-        <p class="text-xs text-gray-500 mt-2">
-          Descreva o que deseja construir ou programar.
-        </p>
+      <div class="actions">
+        <button class="primary" id="generate">Gerar projeto</button>
+        <button class="secondary" id="clear">Limpar</button>
       </div>
 
-      <div class="flex flex-col sm:flex-row gap-3 mt-4">
-        <button
-          id="btnLimpar"
-          type="button"
-          class="px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium rounded-lg text-sm transition"
-        >
-          Limpar
-        </button>
-
-        <button
-          id="btnGerar"
-          type="button"
-          class="flex-grow py-2.5 px-4 bg-[#0088cc] hover:bg-[#0077b3] disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg text-sm transition flex items-center justify-center gap-2 shadow-md"
-        >
-          <span id="btnGerarTexto">Gerar código com Start IA ⚡</span>
-
-          <svg
-            id="spinner"
-            class="hidden animate-spin h-4 w-4"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <circle class="opacity-25" cx="12" cy="12" r="10"
-              stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor"
-              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-          </svg>
-        </button>
+      <div class="status" id="status" role="status" aria-live="polite">
+        <span class="dot"></span>
+        <span>Pronto para começar.</span>
       </div>
-
-      <p id="statusGeracao" class="hidden mt-3 text-sm text-sky-300"
-         role="status" aria-live="polite"></p>
     </section>
 
-    <section class="bg-[#121c3b] border border-gray-800 rounded-xl p-5 flex flex-col justify-between shadow-lg">
-      <div>
-        <label for="codeOutput" class="block text-sm font-semibold text-gray-200 mb-2">
-          💻 Código C++ (Para colar na IDE do Arduino)
-        </label>
+    <section class="results">
+      <article class="panel result-panel">
+        <div class="result-heading">
+          <h2>Código Arduino</h2>
+          <button class="secondary" id="copyCode">Copiar código</button>
+        </div>
 
-        <pre id="codeOutput"
-          class="w-full h-52 bg-[#070b19] border border-gray-700 rounded-lg p-3 text-blue-400 font-mono text-xs overflow-auto select-all whitespace-pre-wrap">// O código gerado aparecerá aqui...</pre>
-      </div>
+        <pre><code id="code" aria-live="polite" class="empty">Seu código aparecerá aqui.</code></pre>
+        <div class="small">Código C++ para Arduino.</div>
+      </article>
 
-      <div class="flex justify-end mt-4">
-        <button id="btnCopiar" type="button"
-          class="px-4 py-2 bg-[#00aaee] hover:bg-[#0099dd] text-white font-medium rounded-lg text-xs transition shadow">
-          📋 Copiar Código
-        </button>
-      </div>
+      <article class="panel result-panel">
+        <div class="result-heading">
+          <h2>Explicação didática</h2>
+          <button class="secondary" id="copyExplanation">Copiar texto</button>
+        </div>
+
+        <div id="explanation" class="explanation empty" aria-live="polite">
+          A explicação aparecerá aqui.
+        </div>
+      </article>
     </section>
   </main>
 
-  <section class="max-w-7xl mx-auto w-full px-6 mb-8">
-    <div class="bg-[#121c3b] border border-gray-800 rounded-xl p-5 shadow-lg">
-      <h2 class="text-sm font-semibold text-gray-200 mb-2">
-        💡 Entendendo o código
-      </h2>
-
-      <div id="explanationOutput"
-        class="text-xs text-gray-300 leading-relaxed bg-[#070b19] border border-gray-700 rounded-lg p-3 min-h-[60px]">
-        A explicação didática do código gerado aparecerá aqui.
-      </div>
-    </div>
-  </section>
-
-  <footer class="w-full text-center py-4 text-xs text-gray-500 border-t border-gray-800">
-    StartCode © 2026 - Start Maker Escola de Robótica
-  </footer>
-
   <script>
-    const btnGerar = document.getElementById('btnGerar');
-    const btnLimpar = document.getElementById('btnLimpar');
-    const btnCopiar = document.getElementById('btnCopiar');
-    const promptInput = document.getElementById('promptInput');
-    const codeOutput = document.getElementById('codeOutput');
-    const explanationOutput = document.getElementById('explanationOutput');
-    const spinner = document.getElementById('spinner');
-    const btnGerarTexto = document.getElementById('btnGerarTexto');
-    const statusGeracao = document.getElementById('statusGeracao');
+    const promptInput = document.getElementById('prompt');
+    const generateButton = document.getElementById('generate');
+    const clearButton = document.getElementById('clear');
+    const codeElement = document.getElementById('code');
+    const explanationElement = document.getElementById('explanation');
+    const statusElement = document.getElementById('status');
 
     let gerando = false;
 
-    function definirEstadoGeracao(ativo) {
-      gerando = ativo;
-      btnGerar.disabled = ativo;
-      btnLimpar.disabled = ativo;
-      promptInput.disabled = ativo;
+    function atualizarStatus(mensagem, carregando = false, erro = false) {
+      statusElement.replaceChildren();
 
-      spinner.classList.toggle('hidden', !ativo);
+      const dot = document.createElement('span');
+      dot.className = carregando ? 'dot loading' : 'dot';
 
-      btnGerarTexto.textContent = ativo
-        ? 'Gerando código...'
-        : 'Gerar código com Start IA ⚡';
+      if (erro) dot.style.background = 'var(--red)';
 
-      statusGeracao.classList.toggle('hidden', !ativo);
-      statusGeracao.textContent = ativo
-        ? 'A Start IA está preparando o código e a explicação. Isso pode levar alguns segundos.'
-        : '';
+      const texto = document.createElement('span');
+      texto.textContent = mensagem;
+
+      statusElement.append(dot, texto);
     }
 
-    btnGerar.addEventListener('click', async () => {
-      if (gerando) return;
+    function mostrarCodigo(codigo) {
+      codeElement.textContent = codigo;
+      codeElement.classList.remove('empty');
+    }
 
+    function mostrarExplicacao(html) {
+      // Exibe HTML gerado pelo modelo. Scripts e handlers são removidos.
+      const documento = new DOMParser().parseFromString(html, 'text/html');
+
+      documento.querySelectorAll(
+        'script, iframe, object, embed, form, input, button, link, meta, style'
+      ).forEach(elemento => elemento.remove());
+
+      documento.body.querySelectorAll('*').forEach(elemento => {
+        [...elemento.attributes].forEach(atributo => {
+          if (
+            atributo.name.toLowerCase().startsWith('on') ||
+            ['src', 'href', 'srcdoc', 'formaction'].includes(atributo.name.toLowerCase())
+          ) {
+            elemento.removeAttribute(atributo.name);
+          }
+        });
+      });
+
+      explanationElement.innerHTML = documento.body.innerHTML;
+      explanationElement.classList.remove('empty');
+    }
+
+    function definirBotoes(carregando) {
+      gerando = carregando;
+      generateButton.disabled = carregando;
+      clearButton.disabled = carregando;
+      generateButton.textContent = carregando ? 'Gerando...' : 'Gerar projeto';
+    }
+
+    async function gerarProjeto() {
       const prompt = promptInput.value.trim();
 
       if (!prompt) {
-        explanationOutput.textContent =
-          'Escreva sua ideia no campo acima para começar.';
+        atualizarStatus('Descreva o projeto antes de gerar.', false, true);
         promptInput.focus();
         return;
       }
 
-      definirEstadoGeracao(true);
-
-      codeOutput.textContent =
-        '// A Start IA está gerando seu código...';
-
-      explanationOutput.textContent =
-        'Analisando seu pedido e preparando uma explicação didática...';
+      definirBotoes(true);
+      mostrarCodigo('Aguardando o código...');
+      codeElement.classList.add('empty');
+      explanationElement.textContent = 'Preparando a explicação...';
+      explanationElement.classList.add('empty');
+      atualizarStatus('Conectando ao StartCode...', true);
 
       try {
-        const response = await fetch('/api/gerar-codigo', {
+        const resposta = await fetch('/api/gerar-codigo', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt })
         });
 
-        const data = await response.json().catch(() => ({}));
+        if (!resposta.ok) {
+          let mensagem = 'Não foi possível iniciar a geração.';
 
-        if (!response.ok || !data.success) {
-          codeOutput.textContent = '// Não foi possível gerar o código.';
+          try {
+            const erro = await resposta.json();
+            mensagem = erro.error || mensagem;
+          } catch (_) {}
 
-          explanationOutput.textContent =
-            data.error || 'Ocorreu um problema ao gerar o código. Tente novamente.';
-
-          return;
+          throw new Error(mensagem);
         }
 
-        codeOutput.textContent = data.code;
+        if (!resposta.body) {
+          throw new Error('O navegador não recebeu um fluxo de resposta.');
+        }
 
-        // A API retorna HTML. Para uso em produção, sanitize o conteúdo
-        // antes de inseri-lo com innerHTML.
-        explanationOutput.innerHTML = data.explanation;
+        const reader = resposta.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let recebeuCodigo = false;
+        let recebeuExplicacao = false;
 
+        while (true) {
+          const { value, done } = await reader.read();
+
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+
+          const linhas = buffer.split('\n');
+          buffer = linhas.pop() || '';
+
+          for (const linha of linhas) {
+            if (!linha.trim()) continue;
+
+            let evento;
+
+            try {
+              evento = JSON.parse(linha);
+            } catch (_) {
+              continue;
+            }
+
+            if (evento.type === 'status') {
+              atualizarStatus(evento.message || 'Gerando...', true);
+            }
+
+            if (evento.type === 'code' && evento.code) {
+              mostrarCodigo(evento.code);
+              recebeuCodigo = true;
+              atualizarStatus(
+                recebeuExplicacao
+                  ? 'Código e explicação recebidos.'
+                  : 'Código recebido. Preparando a explicação...',
+                true
+              );
+            }
+
+            if (evento.type === 'explanation' && evento.explanation) {
+              mostrarExplicacao(evento.explanation);
+              recebeuExplicacao = true;
+              atualizarStatus(
+                recebeuCodigo
+                  ? 'Código recebido. Finalizando...'
+                  : 'Preparando a explicação...',
+                true
+              );
+            }
+
+            if (evento.type === 'complete') {
+              mostrarCodigo(evento.code);
+              mostrarExplicacao(evento.explanation);
+              recebeuCodigo = true;
+              recebeuExplicacao = true;
+            }
+
+            if (evento.type === 'error') {
+              throw new Error(evento.error || 'Erro durante a geração.');
+            }
+          }
+        }
+
+        if (buffer.trim()) {
+          try {
+            const evento = JSON.parse(buffer);
+
+            if (evento.type === 'complete') {
+              mostrarCodigo(evento.code);
+              mostrarExplicacao(evento.explanation);
+              recebeuCodigo = true;
+              recebeuExplicacao = true;
+            } else if (evento.type === 'error') {
+              throw new Error(evento.error || 'Erro durante a geração.');
+            }
+          } catch (erro) {
+            if (erro instanceof Error && erro.message !== 'Unexpected end of JSON input') {
+              throw erro;
+            }
+          }
+        }
+
+        if (!recebeuCodigo || !recebeuExplicacao) {
+          throw new Error('A resposta terminou antes de todos os resultados chegarem. Tente novamente.');
+        }
+
+        atualizarStatus('Projeto gerado com sucesso.');
       } catch (erro) {
-        console.error('Falha na solicitação:', erro);
+        console.error('[StartCode]', erro);
+        atualizarStatus(erro.message || 'Ocorreu um erro na geração.', false, true);
 
-        codeOutput.textContent = '// Erro de conexão com o servidor.';
+        if (!codeElement.textContent || codeElement.textContent === 'Aguardando o código...') {
+          mostrarCodigo('Não foi possível gerar o código.');
+          codeElement.classList.add('empty');
+        }
 
-        explanationOutput.textContent =
-          'Não foi possível comunicar com o servidor. Verifique a conexão e tente novamente.';
-
+        if (
+          !explanationElement.textContent ||
+          explanationElement.textContent === 'Preparando a explicação...'
+        ) {
+          explanationElement.textContent = 'Tente novamente. Se o problema persistir, consulte os logs da Vercel.';
+          explanationElement.classList.add('empty');
+        }
       } finally {
-        definirEstadoGeracao(false);
+        definirBotoes(false);
+      }
+    }
+
+    generateButton.addEventListener('click', gerarProjeto);
+
+    promptInput.addEventListener('keydown', evento => {
+      if ((evento.ctrlKey || evento.metaKey) && evento.key === 'Enter' && !gerando) {
+        gerarProjeto();
       }
     });
 
-    btnLimpar.addEventListener('click', () => {
-      if (gerando) return;
-
+    clearButton.addEventListener('click', () => {
       promptInput.value = '';
-      codeOutput.textContent = '// O código gerado aparecerá aqui...';
-
-      explanationOutput.textContent =
-        'A explicação didática do código gerado aparecerá aqui.';
-
+      codeElement.textContent = 'Seu código aparecerá aqui.';
+      codeElement.classList.add('empty');
+      explanationElement.textContent = 'A explicação aparecerá aqui.';
+      explanationElement.classList.add('empty');
+      atualizarStatus('Pronto para começar.');
       promptInput.focus();
     });
 
-    btnCopiar.addEventListener('click', async () => {
-      const textoCodigo = codeOutput.textContent;
+    document.getElementById('copyCode').addEventListener('click', async () => {
+      const codigo = codeElement.textContent;
 
-      const mensagensIniciais = [
-        '// O código gerado aparecerá aqui...',
-        '// A Start IA está gerando',
-        '// Não foi possível gerar',
-        '// Erro de conexão'
-      ];
-
-      if (
-        !textoCodigo ||
-        mensagensIniciais.some(mensagem => textoCodigo.startsWith(mensagem))
-      ) {
+      if (!codigo || codeElement.classList.contains('empty')) {
+        atualizarStatus('Ainda não há código para copiar.', false, true);
         return;
       }
 
       try {
-        await navigator.clipboard.writeText(textoCodigo);
-        btnCopiar.textContent = 'Copiado! ✓';
-
-      } catch (erro) {
-        console.error('Não foi possível copiar:', erro);
-        btnCopiar.textContent = 'Selecione e copie';
+        await navigator.clipboard.writeText(codigo);
+        atualizarStatus('Código copiado.');
+      } catch (_) {
+        atualizarStatus('Não foi possível copiar. Selecione o código e copie manualmente.', false, true);
       }
-
-      setTimeout(() => {
-        btnCopiar.textContent = '📋 Copiar Código';
-      }, 2000);
     });
 
-    promptInput.addEventListener('keydown', evento => {
-      if (
-        (evento.ctrlKey || evento.metaKey) &&
-        evento.key === 'Enter'
-      ) {
-        btnGerar.click();
+    document.getElementById('copyExplanation').addEventListener('click', async () => {
+      const texto = explanationElement.innerText;
+
+      if (!texto || explanationElement.classList.contains('empty')) {
+        atualizarStatus('Ainda não há explicação para copiar.', false, true);
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(texto);
+        atualizarStatus('Explicação copiada.');
+      } catch (_) {
+        atualizarStatus('Não foi possível copiar a explicação.', false, true);
       }
     });
   </script>
