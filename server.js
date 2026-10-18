@@ -28,8 +28,9 @@ Responde estritamente num formato JSON válido (sem blocos de código markdown o
   "explanation": "explicação didática detalhada em HTML"
 }`;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro',
+        // Chamada direta compatível com a nova estrutura do SDK `@google/genai`
+        const response = await ai.generateContent({
+            model: 'gemini-2.5-flash',
             contents: promptCompleto
         });
 
