@@ -42,7 +42,7 @@ REGRAS CRÍTICAS:
 4. Garante que o JSON gerado é válido e pronto a ser interpretado por JSON.parse().`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-3.8-flash',
+            model: 'gemini-1.5-flash', // Alterado para o modelo oficial ultrarrápido
             contents: [
                 { role: 'user', parts: [{ text: `${systemInstruction}\n\nPedido do aluno: ${prompt}` }] }
             ]
