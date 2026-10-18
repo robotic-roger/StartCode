@@ -1,131 +1,260 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StartCode - Assistente IA para Codificação</title>
-    <link rel="icon" type="image/png" href="/start.png">
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StartCode - Assistente IA para Codificação</title>
+  <link rel="icon" type="image/png" href="/start.png">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-[#0b1329] text-gray-100 min-h-screen flex flex-col justify-between">
 
-    <!-- Cabeçalho -->
-    <header class="w-full bg-[#0b1329] border-b border-gray-800 py-4 px-6 flex items-center justify-between shadow-md">
-        <div class="flex items-center space-x-3">
-            <img src="/start.png" alt="Robô Start" class="w-10 h-10 object-contain">
-            <h1 class="text-2xl font-bold tracking-wide text-white">StartCode - Assistente IA para Codificação</h1>
-        </div>
-        <div>
-            <img src="/logo.png" alt="Logo Start Maker" class="h-8 object-contain">
-        </div>
-    </header>
+  <header class="w-full bg-[#0b1329] border-b border-gray-800 py-4 px-6 flex items-center justify-between gap-4 shadow-md">
+    <div class="flex items-center space-x-3 min-w-0">
+      <img src="/start.png" alt="Robô Start" class="w-10 h-10 object-contain">
+      <h1 class="text-xl md:text-2xl font-bold tracking-wide text-white">
+        StartCode - Assistente IA para Codificação
+      </h1>
+    </div>
+    <img src="/logo.png" alt="Logo Start Maker" class="h-8 object-contain">
+  </header>
 
-    <!-- Conteúdo Principal -->
-    <main class="flex-grow p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        <!-- Caixa de Entrada (Prompt) -->
-        <div class="bg-[#121c3b] border border-gray-800 rounded-xl p-5 flex flex-col justify-between shadow-lg">
-            <div>
-                <label class="block text-sm font-semibold text-gray-200 mb-2 flex items-center space-x-2">
-                    <span>✏️ Escreva sua ideia aqui</span>
-                </label>
-                <textarea id="promptInput" rows="8" placeholder="Ex: acenda um led na porta d3 a cada meio segundo..." class="w-full bg-[#070b19] border border-gray-700 rounded-lg p-3 text-gray-100 focus:outline-none focus:border-blue-500 resize-none text-sm"></textarea>
-            </div>
-            <div class="flex space-x-3 mt-4">
-                <button id="btnLimpar" class="px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium rounded-lg text-sm transition">Limpar</button>
-                <button id="btnGerar" class="flex-grow py-2.5 bg-[#0088cc] hover:bg-[#0077b3] text-white font-semibold rounded-lg text-sm transition flex items-center justify-center space-x-2 shadow-md">
-                    <span>Gerar código com Start IA ⚡</span>
-                </button>
-            </div>
-        </div>
+  <main class="flex-grow p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        <!-- Caixa de Código C++ -->
-        <div class="bg-[#121c3b] border border-gray-800 rounded-xl p-5 flex flex-col justify-between shadow-lg">
-            <div>
-                <div class="flex items-center justify-between mb-2">
-                    <label class="text-sm font-semibold text-gray-200 flex items-center space-x-2">
-                        <span>💻 Código C++ (Para colar na IDE do Arduino)</span>
-                    </label>
-                </div>
-                <pre id="codeOutput" class="w-full h-52 bg-[#070b19] border border-gray-700 rounded-lg p-3 text-blue-400 font-mono text-xs overflow-auto select-all">// O código gerado aparecerá aqui...</pre>
-            </div>
-            <div class="flex justify-end mt-4">
-                <button id="btnCopiar" class="px-4 py-2 bg-[#00aaee] hover:bg-[#0099dd] text-white font-medium rounded-lg text-xs transition flex items-center space-x-1 shadow">
-                    <span>📋 Copiar Código</span>
-                </button>
-            </div>
-        </div>
+    <section class="bg-[#121c3b] border border-gray-800 rounded-xl p-5 flex flex-col justify-between shadow-lg">
+      <div>
+        <label for="promptInput" class="block text-sm font-semibold text-gray-200 mb-2">
+          ✏️ Escreva sua ideia aqui
+        </label>
 
-    </main>
+        <textarea
+          id="promptInput"
+          rows="8"
+          maxlength="4000"
+          placeholder="Ex: acenda um LED na porta D3 a cada meio segundo..."
+          class="w-full bg-[#070b19] border border-gray-700 rounded-lg p-3 text-gray-100 focus:outline-none focus:border-blue-500 resize-none text-sm"
+        ></textarea>
 
-    <!-- Secção de Explicação -->
-    <section class="max-w-7xl mx-auto w-full px-6 mb-8">
-        <div class="bg-[#121c3b] border border-gray-800 rounded-xl p-5 shadow-lg">
-            <h2 class="text-sm font-semibold text-gray-200 mb-2 flex items-center space-x-2">
-                <span>💡 Entendendo o código</span>
-            </h2>
-            <div id="explanationOutput" class="text-xs text-gray-300 leading-relaxed bg-[#070b19] border border-gray-700 rounded-lg p-3 min-h-[60px]">
-                A explicação didática do código gerado aparecerá aqui.
-            </div>
-        </div>
+        <p class="text-xs text-gray-500 mt-2">
+          Descreva o que deseja construir ou programar.
+        </p>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3 mt-4">
+        <button
+          id="btnLimpar"
+          type="button"
+          class="px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium rounded-lg text-sm transition"
+        >
+          Limpar
+        </button>
+
+        <button
+          id="btnGerar"
+          type="button"
+          class="flex-grow py-2.5 px-4 bg-[#0088cc] hover:bg-[#0077b3] disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg text-sm transition flex items-center justify-center gap-2 shadow-md"
+        >
+          <span id="btnGerarTexto">Gerar código com Start IA ⚡</span>
+
+          <svg
+            id="spinner"
+            class="hidden animate-spin h-4 w-4"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle class="opacity-25" cx="12" cy="12" r="10"
+              stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <p id="statusGeracao" class="hidden mt-3 text-sm text-sky-300"
+         role="status" aria-live="polite"></p>
     </section>
 
-    <!-- Rodapé -->
-    <footer class="w-full text-center py-4 text-xs text-gray-500 border-t border-gray-800">
-        StartCode © 2026 - Start Maker Escola de Robótica
-    </footer>
+    <section class="bg-[#121c3b] border border-gray-800 rounded-xl p-5 flex flex-col justify-between shadow-lg">
+      <div>
+        <label for="codeOutput" class="block text-sm font-semibold text-gray-200 mb-2">
+          💻 Código C++ (Para colar na IDE do Arduino)
+        </label>
 
-    <!-- Script de Integração com o Servidor -->
-    <script>
-        const btnGerar = document.getElementById('btnGerar');
-        const btnLimpar = document.getElementById('btnLimpar');
-        const btnCopiar = document.getElementById('btnCopiar');
-        const promptInput = document.getElementById('promptInput');
-        const codeOutput = document.getElementById('codeOutput');
-        const explanationOutput = document.getElementById('explanationOutput');
+        <pre id="codeOutput"
+          class="w-full h-52 bg-[#070b19] border border-gray-700 rounded-lg p-3 text-blue-400 font-mono text-xs overflow-auto select-all whitespace-pre-wrap">// O código gerado aparecerá aqui...</pre>
+      </div>
 
-        btnGerar.addEventListener('click', async () => {
-            const prompt = promptInput.value.trim();
-            if (!prompt) return;
+      <div class="flex justify-end mt-4">
+        <button id="btnCopiar" type="button"
+          class="px-4 py-2 bg-[#00aaee] hover:bg-[#0099dd] text-white font-medium rounded-lg text-xs transition shadow">
+          📋 Copiar Código
+        </button>
+      </div>
+    </section>
+  </main>
 
-            codeOutput.innerText = "// A gerar código com inteligência artificial...";
-            explanationOutput.innerHTML = "A processar o pedido...";
+  <section class="max-w-7xl mx-auto w-full px-6 mb-8">
+    <div class="bg-[#121c3b] border border-gray-800 rounded-xl p-5 shadow-lg">
+      <h2 class="text-sm font-semibold text-gray-200 mb-2">
+        💡 Entendendo o código
+      </h2>
 
-            try {
-                const response = await fetch('/api/gerar-codigo', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt })
-                });
+      <div id="explanationOutput"
+        class="text-xs text-gray-300 leading-relaxed bg-[#070b19] border border-gray-700 rounded-lg p-3 min-h-[60px]">
+        A explicação didática do código gerado aparecerá aqui.
+      </div>
+    </div>
+  </section>
 
-                const data = await response.json();
+  <footer class="w-full text-center py-4 text-xs text-gray-500 border-t border-gray-800">
+    StartCode © 2026 - Start Maker Escola de Robótica
+  </footer>
 
-                if (data.success) {
-                    codeOutput.innerText = data.code;
-                    explanationOutput.innerHTML = data.explanation;
-                } else {
-                    codeOutput.innerText = "// Erro ao gerar código.";
-                    explanationOutput.innerHTML = `<span class="text-red-400">${data.error || 'Erro desconhecido'}</span>`;
-                }
-            } catch (err) {
-                console.error(err);
-                codeOutput.innerText = "// Erro de conexão com o servidor.";
-                explanationOutput.innerHTML = `<span class="text-red-400">Falha na comunicação com a API.</span>`;
-            }
+  <script>
+    const btnGerar = document.getElementById('btnGerar');
+    const btnLimpar = document.getElementById('btnLimpar');
+    const btnCopiar = document.getElementById('btnCopiar');
+    const promptInput = document.getElementById('promptInput');
+    const codeOutput = document.getElementById('codeOutput');
+    const explanationOutput = document.getElementById('explanationOutput');
+    const spinner = document.getElementById('spinner');
+    const btnGerarTexto = document.getElementById('btnGerarTexto');
+    const statusGeracao = document.getElementById('statusGeracao');
+
+    let gerando = false;
+
+    function definirEstadoGeracao(ativo) {
+      gerando = ativo;
+      btnGerar.disabled = ativo;
+      btnLimpar.disabled = ativo;
+      promptInput.disabled = ativo;
+
+      spinner.classList.toggle('hidden', !ativo);
+
+      btnGerarTexto.textContent = ativo
+        ? 'Gerando código...'
+        : 'Gerar código com Start IA ⚡';
+
+      statusGeracao.classList.toggle('hidden', !ativo);
+      statusGeracao.textContent = ativo
+        ? 'A Start IA está preparando o código e a explicação. Isso pode levar alguns segundos.'
+        : '';
+    }
+
+    btnGerar.addEventListener('click', async () => {
+      if (gerando) return;
+
+      const prompt = promptInput.value.trim();
+
+      if (!prompt) {
+        explanationOutput.textContent =
+          'Escreva sua ideia no campo acima para começar.';
+        promptInput.focus();
+        return;
+      }
+
+      definirEstadoGeracao(true);
+
+      codeOutput.textContent =
+        '// A Start IA está gerando seu código...';
+
+      explanationOutput.textContent =
+        'Analisando seu pedido e preparando uma explicação didática...';
+
+      try {
+        const response = await fetch('/api/gerar-codigo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ prompt })
         });
 
-        btnLimpar.addEventListener('click', () => {
-            promptInput.value = '';
-            codeOutput.innerText = '// O código gerado aparecerá aqui...';
-            explanationOutput.innerHTML = 'A explicação didática do código gerado aparecerá aqui.';
-        });
+        const data = await response.json().catch(() => ({}));
 
-        btnCopiar.addEventListener('click', () => {
-            const textoCodigo = codeOutput.innerText;
-            navigator.clipboard.writeText(textoCodigo);
-            btnCopiar.innerText = 'Copiado! ✓';
-            setTimeout(() => { btnCopiar.innerText = '📋 Copiar Código'; }, 2000);
-        });
-    </script>
+        if (!response.ok || !data.success) {
+          codeOutput.textContent = '// Não foi possível gerar o código.';
+
+          explanationOutput.textContent =
+            data.error || 'Ocorreu um problema ao gerar o código. Tente novamente.';
+
+          return;
+        }
+
+        codeOutput.textContent = data.code;
+
+        // A API retorna HTML. Para uso em produção, sanitize o conteúdo
+        // antes de inseri-lo com innerHTML.
+        explanationOutput.innerHTML = data.explanation;
+
+      } catch (erro) {
+        console.error('Falha na solicitação:', erro);
+
+        codeOutput.textContent = '// Erro de conexão com o servidor.';
+
+        explanationOutput.textContent =
+          'Não foi possível comunicar com o servidor. Verifique a conexão e tente novamente.';
+
+      } finally {
+        definirEstadoGeracao(false);
+      }
+    });
+
+    btnLimpar.addEventListener('click', () => {
+      if (gerando) return;
+
+      promptInput.value = '';
+      codeOutput.textContent = '// O código gerado aparecerá aqui...';
+
+      explanationOutput.textContent =
+        'A explicação didática do código gerado aparecerá aqui.';
+
+      promptInput.focus();
+    });
+
+    btnCopiar.addEventListener('click', async () => {
+      const textoCodigo = codeOutput.textContent;
+
+      const mensagensIniciais = [
+        '// O código gerado aparecerá aqui...',
+        '// A Start IA está gerando',
+        '// Não foi possível gerar',
+        '// Erro de conexão'
+      ];
+
+      if (
+        !textoCodigo ||
+        mensagensIniciais.some(mensagem => textoCodigo.startsWith(mensagem))
+      ) {
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(textoCodigo);
+        btnCopiar.textContent = 'Copiado! ✓';
+
+      } catch (erro) {
+        console.error('Não foi possível copiar:', erro);
+        btnCopiar.textContent = 'Selecione e copie';
+      }
+
+      setTimeout(() => {
+        btnCopiar.textContent = '📋 Copiar Código';
+      }, 2000);
+    });
+
+    promptInput.addEventListener('keydown', evento => {
+      if (
+        (evento.ctrlKey || evento.metaKey) &&
+        evento.key === 'Enter'
+      ) {
+        btnGerar.click();
+      }
+    });
+  </script>
 </body>
 </html>
