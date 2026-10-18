@@ -22,15 +22,10 @@ app.post('/api/gerar-codigo', async (req, res) => {
         const promptCompleto = `És o StartCode, um assistente especialista em programação de Arduino para robótica educacional.
 O aluno pediu: "${prompt}"
 
-Responde estritamente num formato JSON válido (sem blocos de código markdown ou texto extra, apenas o objeto JSON) contendo exatamente estas três chaves:
+Responde estritamente num formato JSON válido (sem blocos de código markdown ou texto extra, apenas o objeto JSON) contendo exatamente estas duas chaves:
 {
   "code": "código C++ completo para Arduino com setup e loop",
-  "explanation": "explicação didática em HTML",
-  "flowchart": [
-    { "tipo": "inicio", "texto": "Início" },
-    { "tipo": "processo", "texto": "Passo lógico" },
-    { "tipo": "fim", "texto": "Fim" }
-  ]
+  "explanation": "explicação didática detalhada em HTML"
 }`;
 
         const response = await ai.models.generateContent({
@@ -52,8 +47,7 @@ Responde estritamente num formato JSON válido (sem blocos de código markdown o
         res.json({
             success: true,
             code: dados.code,
-            explanation: dados.explanation,
-            flowchart: dados.flowchart
+            explanation: dados.explanation
         });
 
     } catch (erro) {
