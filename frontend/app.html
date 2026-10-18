@@ -3,9 +3,11 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#071426">
   <title>StartCode | Start Maker</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 
   <style>
     :root {
@@ -28,7 +30,7 @@
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font-family: Inter, Arial, sans-serif;
+      font-family: Arial, sans-serif;
       min-height: 100vh;
     }
 
@@ -39,14 +41,14 @@
     }
 
     .header-inner, main {
-      width: min(1100px, calc(100% - 32px));
+      width: min(1150px, calc(100% - 32px));
       margin: auto;
     }
 
     .brand {
       font-size: 27px;
       font-weight: 800;
-      letter-spacing: -0.8px;
+      letter-spacing: -.8px;
     }
 
     .brand span { color: var(--yellow); }
@@ -65,12 +67,10 @@
       border-radius: 14px;
       padding: 22px;
       margin-bottom: 20px;
+      min-width: 0;
     }
 
-    h2 {
-      margin: 0 0 14px;
-      font-size: 19px;
-    }
+    h2 { margin: 0 0 14px; font-size: 19px; }
 
     label {
       display: block;
@@ -112,21 +112,17 @@
       font-weight: 750;
     }
 
-    button:disabled {
-      cursor: not-allowed;
-      opacity: .6;
-    }
+    button:disabled { cursor: not-allowed; opacity: .55; }
 
-    .primary {
-      background: var(--yellow);
-      color: #172033;
-    }
+    .primary { background: var(--yellow); color: #172033; }
 
     .secondary {
       background: #20334d;
       color: var(--text);
       border: 1px solid #354b68;
     }
+
+    .flow-button { background: #087fbd; color: #fff; }
 
     .status {
       display: flex;
@@ -170,6 +166,7 @@
       justify-content: space-between;
       gap: 10px;
       margin-bottom: 14px;
+      flex-wrap: wrap;
     }
 
     .result-heading h2 { margin: 0; }
@@ -186,7 +183,6 @@
       color: #d8e7ff;
       white-space: pre;
       font: 13px/1.65 Consolas, Monaco, monospace;
-      tab-size: 2;
     }
 
     .explanation {
@@ -196,347 +192,512 @@
     }
 
     .explanation h3 { color: var(--yellow); }
-
-    .explanation code {
-      background: #06111f;
-      padding: 2px 5px;
-      border-radius: 4px;
-    }
-
+    .explanation code { background: #06111f; padding: 2px 5px; border-radius: 4px; }
     .explanation ul, .explanation ol { padding-left: 23px; }
 
-    .empty {
-      color: #8294ad;
+    .empty { color: #8294ad; font-style: italic; }
+    .small { color: var(--muted); font-size: 12px; margin-top: 12px; }
+
+    #flowSection { display: none; }
+
+    .flow-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    #flowViewport {
+      width: 100%;
+      min-height: 250px;
+      max-height: 75vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    #flowViewport svg {
+      display: block;
+      max-width: none;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    .flow-placeholder {
+      color: #58677a;
+      padding: 70px 10px;
       font-style: italic;
     }
 
-    .error { color: var(--red); }
-
-    .small {
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 12px;
-    }
+    .flow-error { color: var(--red); }
 
     @media (max-width: 760px) {
       .results { grid-template-columns: 1fr; }
       .panel { padding: 16px; }
       header { padding: 18px 0; }
       .brand { font-size: 24px; }
+      #flowViewport { padding: 8px; }
     }
   </style>
 </head>
 
 <body>
-  <header>
-    <div class="header-inner">
-      <div class="brand">Start<span>Code</span></div>
-      <div class="subtitle">Assistente de programação para robótica educacional</div>
+<header>
+  <div class="header-inner">
+    <div class="brand">Start<span>Code</span></div>
+    <div class="subtitle">Assistente de programação para robótica educacional</div>
+  </div>
+</header>
+
+<main>
+  <section class="panel">
+    <h2>O que vamos construir?</h2>
+    <label for="prompt">Descreva seu projeto Arduino</label>
+
+    <textarea id="prompt" placeholder="Ex.: Acenda um LED no pino 13 por um segundo e apague por outro segundo."></textarea>
+
+    <div class="actions">
+      <button class="primary" id="generate">Gerar código</button>
+      <button class="flow-button" id="generateFlow" disabled>Gerar fluxograma</button>
+      <button class="secondary" id="clear">Limpar</button>
     </div>
-  </header>
 
-  <main>
-    <section class="panel">
-      <h2>O que vamos construir?</h2>
+    <div class="status" id="status" role="status" aria-live="polite">
+      <span class="dot"></span>
+      <span>Pronto para começar.</span>
+    </div>
+  </section>
 
-      <label for="prompt">Descreva seu projeto Arduino</label>
-      <textarea
-        id="prompt"
-        placeholder="Ex.: Crie um programa para acender um LED no pino 13 durante um segundo e apagá-lo durante outro segundo."
-      ></textarea>
-
-      <div class="actions">
-        <button class="primary" id="generate">Gerar projeto</button>
-        <button class="secondary" id="clear">Limpar</button>
+  <section class="results">
+    <article class="panel result-panel">
+      <div class="result-heading">
+        <h2>Código Arduino</h2>
+        <button class="secondary" id="copyCode">Copiar código</button>
       </div>
+      <pre><code id="code" class="empty">Seu código aparecerá aqui.</code></pre>
+      <div class="small">Código C++ para Arduino.</div>
+    </article>
 
-      <div class="status" id="status" role="status" aria-live="polite">
-        <span class="dot"></span>
-        <span>Pronto para começar.</span>
+    <article class="panel result-panel">
+      <div class="result-heading">
+        <h2>Explicação didática</h2>
+        <button class="secondary" id="copyExplanation">Copiar texto</button>
       </div>
-    </section>
+      <div id="explanation" class="explanation empty">A explicação aparecerá aqui.</div>
+    </article>
+  </section>
 
-    <section class="results">
-      <article class="panel result-panel">
-        <div class="result-heading">
-          <h2>Código Arduino</h2>
-          <button class="secondary" id="copyCode">Copiar código</button>
-        </div>
+  <section class="panel" id="flowSection">
+    <div class="result-heading">
+      <h2 id="flowTitle">Fluxograma do código Arduino</h2>
+    </div>
 
-        <pre><code id="code" aria-live="polite" class="empty">Seu código aparecerá aqui.</code></pre>
-        <div class="small">Código C++ para Arduino.</div>
-      </article>
+    <div class="flow-toolbar">
+      <button class="secondary" id="downloadPng">Exportar PNG</button>
+      <button class="secondary" id="downloadSvg">Exportar SVG</button>
+      <button class="secondary" id="copyDiagram">Copiar código do diagrama</button>
+    </div>
 
-      <article class="panel result-panel">
-        <div class="result-heading">
-          <h2>Explicação didática</h2>
-          <button class="secondary" id="copyExplanation">Copiar texto</button>
-        </div>
+    <div id="flowViewport">
+      <div class="flow-placeholder">Seu fluxograma aparecerá aqui.</div>
+    </div>
+    <div class="small">O diagrama representa a lógica identificada no código Arduino gerado.</div>
+  </section>
+</main>
 
-        <div id="explanation" class="explanation empty" aria-live="polite">
-          A explicação aparecerá aqui.
-        </div>
-      </article>
-    </section>
-  </main>
+<script>
+  const promptInput = document.getElementById('prompt');
+  const generateButton = document.getElementById('generate');
+  const flowButton = document.getElementById('generateFlow');
+  const clearButton = document.getElementById('clear');
+  const codeElement = document.getElementById('code');
+  const explanationElement = document.getElementById('explanation');
+  const statusElement = document.getElementById('status');
+  const flowSection = document.getElementById('flowSection');
+  const flowViewport = document.getElementById('flowViewport');
 
-  <script>
-    const promptInput = document.getElementById('prompt');
-    const generateButton = document.getElementById('generate');
-    const clearButton = document.getElementById('clear');
-    const codeElement = document.getElementById('code');
-    const explanationElement = document.getElementById('explanation');
-    const statusElement = document.getElementById('status');
+  let gerando = false;
+  let gerandoFluxograma = false;
+  let ultimoDiagrama = '';
+  let ultimaSvg = null;
 
-    let gerando = false;
+  mermaid.initialize({
+    startOnLoad: false,
+    securityLevel: 'strict',
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#ffffff',
+      primaryTextColor: '#101820',
+      primaryBorderColor: '#111827',
+      lineColor: '#21649b',
+      secondaryColor: '#eaf5ff',
+      tertiaryColor: '#e9fff3',
+      fontFamily: 'Arial, sans-serif',
+      fontSize: '18px'
+    },
+    flowchart: {
+      htmlLabels: false,
+      curve: 'step',
+      nodeSpacing: 45,
+      rankSpacing: 55,
+      useMaxWidth: false
+    }
+  });
 
-    function atualizarStatus(mensagem, carregando = false, erro = false) {
-      statusElement.replaceChildren();
+  function atualizarStatus(mensagem, carregando = false, erro = false) {
+    statusElement.replaceChildren();
 
-      const dot = document.createElement('span');
-      dot.className = carregando ? 'dot loading' : 'dot';
+    const dot = document.createElement('span');
+    dot.className = carregando ? 'dot loading' : 'dot';
 
-      if (erro) dot.style.background = 'var(--red)';
+    if (erro) dot.style.background = 'var(--red)';
 
-      const texto = document.createElement('span');
-      texto.textContent = mensagem;
+    const texto = document.createElement('span');
+    texto.textContent = mensagem;
 
-      statusElement.append(dot, texto);
+    statusElement.append(dot, texto);
+  }
+
+  function mostrarCodigo(codigo) {
+    codeElement.textContent = codigo;
+    codeElement.classList.remove('empty');
+    flowButton.disabled = gerando || gerandoFluxograma || !codigo.trim();
+  }
+
+  function mostrarExplicacao(html) {
+    const documento = new DOMParser().parseFromString(html, 'text/html');
+
+    documento.querySelectorAll(
+      'script, iframe, object, embed, form, input, button, link, meta, style'
+    ).forEach(el => el.remove());
+
+    documento.body.querySelectorAll('*').forEach(el => {
+      [...el.attributes].forEach(attr => {
+        if (
+          attr.name.toLowerCase().startsWith('on') ||
+          ['src', 'href', 'srcdoc', 'formaction'].includes(attr.name.toLowerCase())
+        ) {
+          el.removeAttribute(attr.name);
+        }
+      });
+    });
+
+    explanationElement.innerHTML = documento.body.innerHTML;
+    explanationElement.classList.remove('empty');
+  }
+
+  function definirGeracao(carregando) {
+    gerando = carregando;
+    generateButton.disabled = carregando;
+    clearButton.disabled = carregando || gerandoFluxograma;
+    generateButton.textContent = carregando ? 'Gerando...' : 'Gerar código';
+    flowButton.disabled = carregando || gerandoFluxograma || !codigoDisponivel();
+  }
+
+  function codigoDisponivel() {
+    return !codeElement.classList.contains('empty') &&
+      codeElement.textContent.trim() !== '' &&
+      codeElement.textContent !== 'Seu código aparecerá aqui.' &&
+      codeElement.textContent !== 'Aguardando geração do código...';
+  }
+
+  async function gerarProjeto() {
+    const prompt = promptInput.value.trim();
+
+    if (!prompt) {
+      atualizarStatus('Descreva o projeto antes de gerar.', false, true);
+      promptInput.focus();
+      return;
     }
 
-    function mostrarCodigo(codigo) {
-      codeElement.textContent = codigo;
-      codeElement.classList.remove('empty');
-    }
+    definirGeracao(true);
+    mostrarCodigo('Aguardando geração do código...');
+    codeElement.classList.add('empty');
+    explanationElement.textContent = 'Preparando a explicação...';
+    explanationElement.classList.add('empty');
+    flowSection.style.display = 'none';
+    ultimoDiagrama = '';
+    ultimaSvg = null;
 
-    function mostrarExplicacao(html) {
-      // Exibe HTML gerado pelo modelo. Scripts e handlers são removidos.
-      const documento = new DOMParser().parseFromString(html, 'text/html');
+    atualizarStatus('Gerando código Arduino...', true);
 
-      documento.querySelectorAll(
-        'script, iframe, object, embed, form, input, button, link, meta, style'
-      ).forEach(elemento => elemento.remove());
-
-      documento.body.querySelectorAll('*').forEach(elemento => {
-        [...elemento.attributes].forEach(atributo => {
-          if (
-            atributo.name.toLowerCase().startsWith('on') ||
-            ['src', 'href', 'srcdoc', 'formaction'].includes(atributo.name.toLowerCase())
-          ) {
-            elemento.removeAttribute(atributo.name);
-          }
-        });
+    try {
+      const resposta = await fetch('/api/gerar-codigo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
       });
 
-      explanationElement.innerHTML = documento.body.innerHTML;
-      explanationElement.classList.remove('empty');
-    }
+      const dados = await resposta.json();
 
-    function definirBotoes(carregando) {
-      gerando = carregando;
-      generateButton.disabled = carregando;
-      clearButton.disabled = carregando;
-      generateButton.textContent = carregando ? 'Gerando...' : 'Gerar projeto';
-    }
-
-    async function gerarProjeto() {
-      const prompt = promptInput.value.trim();
-
-      if (!prompt) {
-        atualizarStatus('Descreva o projeto antes de gerar.', false, true);
-        promptInput.focus();
-        return;
+      if (!resposta.ok || !dados.success) {
+        throw new Error(dados.error || 'Não foi possível gerar o código.');
       }
 
-      definirBotoes(true);
-      mostrarCodigo('Aguardando o código...');
-      codeElement.classList.add('empty');
-      explanationElement.textContent = 'Preparando a explicação...';
-      explanationElement.classList.add('empty');
-      atualizarStatus('Conectando ao StartCode...', true);
+      mostrarCodigo(dados.code);
+      mostrarExplicacao(dados.explanation);
+      atualizarStatus('Código e explicação gerados. Você já pode criar o fluxograma.');
+    } catch (erro) {
+      console.error(erro);
+      atualizarStatus(erro.message || 'Erro ao gerar o código.', false, true);
+    } finally {
+      definirGeracao(false);
+    }
+  }
 
-      try {
-        const resposta = await fetch('/api/gerar-codigo', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt })
-        });
+  async function gerarFluxograma() {
+    const codigo = codigoDisponivel() ? codeElement.textContent.trim() : '';
 
-        if (!resposta.ok) {
-          let mensagem = 'Não foi possível iniciar a geração.';
+    if (!codigo) {
+      atualizarStatus('Gere o código Arduino antes de criar o fluxograma.', false, true);
+      return;
+    }
 
-          try {
-            const erro = await resposta.json();
-            mensagem = erro.error || mensagem;
-          } catch (_) {}
+    gerandoFluxograma = true;
+    flowButton.disabled = true;
+    generateButton.disabled = true;
+    clearButton.disabled = true;
 
-          throw new Error(mensagem);
-        }
+    flowSection.style.display = 'block';
+    flowViewport.innerHTML = '<div class="flow-placeholder">A IA está analisando o código Arduino...</div>';
+    flowSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    atualizarStatus('Analisando o código e construindo o fluxograma...', true);
 
-        if (!resposta.body) {
-          throw new Error('O navegador não recebeu um fluxo de resposta.');
-        }
+    try {
+      const resposta = await fetch('/api/gerar-fluxograma', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: codigo })
+      });
 
-        const reader = resposta.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        let recebeuCodigo = false;
-        let recebeuExplicacao = false;
+      const dados = await resposta.json();
 
-        while (true) {
-          const { value, done } = await reader.read();
+      if (!resposta.ok || !dados.success) {
+        throw new Error(dados.error || 'Não foi possível gerar o fluxograma.');
+      }
 
-          if (done) break;
+      ultimoDiagrama = dados.diagram;
+      document.getElementById('flowTitle').textContent =
+        dados.title || 'Fluxograma do código Arduino';
 
-          buffer += decoder.decode(value, { stream: true });
+      const id = 'startcode-flow-' + Date.now();
+      const renderizado = await mermaid.render(id, ultimoDiagrama);
 
-          const linhas = buffer.split('\n');
-          buffer = linhas.pop() || '';
+      flowViewport.innerHTML = renderizado.svg;
 
-          for (const linha of linhas) {
-            if (!linha.trim()) continue;
+      const svg = flowViewport.querySelector('svg');
 
-            let evento;
+      if (!svg) {
+        throw new Error('O navegador não conseguiu desenhar o fluxograma.');
+      }
 
-            try {
-              evento = JSON.parse(linha);
-            } catch (_) {
-              continue;
-            }
+      svg.removeAttribute('style');
+      svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      svg.setAttribute('width', svg.getAttribute('width') || '1000');
+      svg.style.maxWidth = 'none';
+      svg.style.height = 'auto';
+      svg.style.background = '#ffffff';
 
-            if (evento.type === 'status') {
-              atualizarStatus(evento.message || 'Gerando...', true);
-            }
+      ultimaSvg = svg.cloneNode(true);
+      atualizarStatus('Fluxograma criado. Você pode exportá-lo como PNG ou SVG.');
+    } catch (erro) {
+      console.error('[StartCode] Fluxograma:', erro);
+      flowViewport.innerHTML = '';
+      const mensagem = document.createElement('p');
+      mensagem.className = 'flow-placeholder flow-error';
+      mensagem.textContent = erro.message || 'Erro ao gerar o fluxograma.';
+      flowViewport.appendChild(mensagem);
+      atualizarStatus('Não foi possível gerar o fluxograma.', false, true);
+    } finally {
+      gerandoFluxograma = false;
+      generateButton.disabled = false;
+      clearButton.disabled = false;
+      flowButton.disabled = !codigoDisponivel();
+    }
+  }
 
-            if (evento.type === 'code' && evento.code) {
-              mostrarCodigo(evento.code);
-              recebeuCodigo = true;
-              atualizarStatus(
-                recebeuExplicacao
-                  ? 'Código e explicação recebidos.'
-                  : 'Código recebido. Preparando a explicação...',
-                true
-              );
-            }
+  function svgComoTexto(svg) {
+    const copia = svg.cloneNode(true);
+    copia.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    copia.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
 
-            if (evento.type === 'explanation' && evento.explanation) {
-              mostrarExplicacao(evento.explanation);
-              recebeuExplicacao = true;
-              atualizarStatus(
-                recebeuCodigo
-                  ? 'Código recebido. Finalizando...'
-                  : 'Preparando a explicação...',
-                true
-              );
-            }
+    if (!copia.getAttribute('width')) copia.setAttribute('width', '1200');
+    if (!copia.getAttribute('height')) copia.setAttribute('height', '800');
 
-            if (evento.type === 'complete') {
-              mostrarCodigo(evento.code);
-              mostrarExplicacao(evento.explanation);
-              recebeuCodigo = true;
-              recebeuExplicacao = true;
-            }
+    const fundo = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    fundo.setAttribute('width', '100%');
+    fundo.setAttribute('height', '100%');
+    fundo.setAttribute('fill', '#ffffff');
+    copia.insertBefore(fundo, copia.firstChild);
 
-            if (evento.type === 'error') {
-              throw new Error(evento.error || 'Erro durante a geração.');
-            }
+    return new XMLSerializer().serializeToString(copia);
+  }
+
+  function baixarArquivo(conteudo, tipo, nome) {
+    const blob = new Blob([conteudo], { type: tipo });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = nome;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }
+
+  function exportarSvg() {
+    if (!ultimaSvg) {
+      atualizarStatus('Gere um fluxograma antes de exportar.', false, true);
+      return;
+    }
+
+    baixarArquivo(
+      svgComoTexto(ultimaSvg),
+      'image/svg+xml;charset=utf-8',
+      'startcode-fluxograma.svg'
+    );
+  }
+
+  async function exportarPng() {
+    if (!ultimaSvg) {
+      atualizarStatus('Gere um fluxograma antes de exportar.', false, true);
+      return;
+    }
+
+    try {
+      const svgTexto = svgComoTexto(ultimaSvg);
+      const blob = new Blob([svgTexto], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const imagem = new Image();
+
+      imagem.onload = () => {
+        const caixa = ultimaSvg.viewBox?.baseVal;
+        const largura = Math.max(
+          1200,
+          Math.ceil(caixa?.width || ultimaSvg.getBoundingClientRect().width || 1200)
+        );
+        const altura = Math.max(
+          800,
+          Math.ceil(caixa?.height || ultimaSvg.getBoundingClientRect().height || 800)
+        );
+
+        const escala = Math.min(2, 3000 / Math.max(largura, altura));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.ceil(largura * escala);
+        canvas.height = Math.ceil(altura * escala);
+
+        const contexto = canvas.getContext('2d');
+        contexto.fillStyle = '#ffffff';
+        contexto.fillRect(0, 0, canvas.width, canvas.height);
+        contexto.scale(escala, escala);
+        contexto.drawImage(imagem, 0, 0, largura, altura);
+
+        canvas.toBlob((png) => {
+          URL.revokeObjectURL(url);
+
+          if (!png) {
+            atualizarStatus('Não foi possível criar o PNG. Exporte como SVG.', false, true);
+            return;
           }
-        }
 
-        if (buffer.trim()) {
-          try {
-            const evento = JSON.parse(buffer);
+          const pngUrl = URL.createObjectURL(png);
+          const link = document.createElement('a');
+          link.href = pngUrl;
+          link.download = 'startcode-fluxograma.png';
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(pngUrl), 1500);
+          atualizarStatus('Fluxograma exportado como PNG.');
+        }, 'image/png');
+      };
 
-            if (evento.type === 'complete') {
-              mostrarCodigo(evento.code);
-              mostrarExplicacao(evento.explanation);
-              recebeuCodigo = true;
-              recebeuExplicacao = true;
-            } else if (evento.type === 'error') {
-              throw new Error(evento.error || 'Erro durante a geração.');
-            }
-          } catch (erro) {
-            if (erro instanceof Error && erro.message !== 'Unexpected end of JSON input') {
-              throw erro;
-            }
-          }
-        }
+      imagem.onerror = () => {
+        URL.revokeObjectURL(url);
+        atualizarStatus('Falha na exportação PNG. Tente exportar como SVG.', false, true);
+      };
 
-        if (!recebeuCodigo || !recebeuExplicacao) {
-          throw new Error('A resposta terminou antes de todos os resultados chegarem. Tente novamente.');
-        }
+      imagem.src = url;
+    } catch (erro) {
+      console.error(erro);
+      atualizarStatus('Falha ao exportar o PNG.', false, true);
+    }
+  }
 
-        atualizarStatus('Projeto gerado com sucesso.');
-      } catch (erro) {
-        console.error('[StartCode]', erro);
-        atualizarStatus(erro.message || 'Ocorreu um erro na geração.', false, true);
+  generateButton.addEventListener('click', gerarProjeto);
+  flowButton.addEventListener('click', gerarFluxograma);
 
-        if (!codeElement.textContent || codeElement.textContent === 'Aguardando o código...') {
-          mostrarCodigo('Não foi possível gerar o código.');
-          codeElement.classList.add('empty');
-        }
+  promptInput.addEventListener('keydown', evento => {
+    if ((evento.ctrlKey || evento.metaKey) && evento.key === 'Enter' && !gerando) {
+      gerarProjeto();
+    }
+  });
 
-        if (
-          !explanationElement.textContent ||
-          explanationElement.textContent === 'Preparando a explicação...'
-        ) {
-          explanationElement.textContent = 'Tente novamente. Se o problema persistir, consulte os logs da Vercel.';
-          explanationElement.classList.add('empty');
-        }
-      } finally {
-        definirBotoes(false);
-      }
+  clearButton.addEventListener('click', () => {
+    if (gerando || gerandoFluxograma) return;
+
+    promptInput.value = '';
+    codeElement.textContent = 'Seu código aparecerá aqui.';
+    codeElement.classList.add('empty');
+    explanationElement.textContent = 'A explicação aparecerá aqui.';
+    explanationElement.classList.add('empty');
+    flowViewport.innerHTML = '<div class="flow-placeholder">Seu fluxograma aparecerá aqui.</div>';
+    flowSection.style.display = 'none';
+    ultimoDiagrama = '';
+    ultimaSvg = null;
+    flowButton.disabled = true;
+    atualizarStatus('Pronto para começar.');
+    promptInput.focus();
+  });
+
+  document.getElementById('copyCode').addEventListener('click', async () => {
+    if (!codigoDisponivel()) {
+      atualizarStatus('Ainda não há código para copiar.', false, true);
+      return;
     }
 
-    generateButton.addEventListener('click', gerarProjeto);
+    try {
+      await navigator.clipboard.writeText(codeElement.textContent);
+      atualizarStatus('Código copiado.');
+    } catch (_) {
+      atualizarStatus('Não foi possível copiar o código.', false, true);
+    }
+  });
 
-    promptInput.addEventListener('keydown', evento => {
-      if ((evento.ctrlKey || evento.metaKey) && evento.key === 'Enter' && !gerando) {
-        gerarProjeto();
-      }
-    });
+  document.getElementById('copyExplanation').addEventListener('click', async () => {
+    const texto = explanationElement.innerText.trim();
 
-    clearButton.addEventListener('click', () => {
-      promptInput.value = '';
-      codeElement.textContent = 'Seu código aparecerá aqui.';
-      codeElement.classList.add('empty');
-      explanationElement.textContent = 'A explicação aparecerá aqui.';
-      explanationElement.classList.add('empty');
-      atualizarStatus('Pronto para começar.');
-      promptInput.focus();
-    });
+    if (!texto || explanationElement.classList.contains('empty')) {
+      atualizarStatus('Ainda não há explicação para copiar.', false, true);
+      return;
+    }
 
-    document.getElementById('copyCode').addEventListener('click', async () => {
-      const codigo = codeElement.textContent;
+    try {
+      await navigator.clipboard.writeText(texto);
+      atualizarStatus('Explicação copiada.');
+    } catch (_) {
+      atualizarStatus('Não foi possível copiar a explicação.', false, true);
+    }
+  });
 
-      if (!codigo || codeElement.classList.contains('empty')) {
-        atualizarStatus('Ainda não há código para copiar.', false, true);
-        return;
-      }
+  document.getElementById('downloadPng').addEventListener('click', exportarPng);
+  document.getElementById('downloadSvg').addEventListener('click', exportarSvg);
 
-      try {
-        await navigator.clipboard.writeText(codigo);
-        atualizarStatus('Código copiado.');
-      } catch (_) {
-        atualizarStatus('Não foi possível copiar. Selecione o código e copie manualmente.', false, true);
-      }
-    });
+  document.getElementById('copyDiagram').addEventListener('click', async () => {
+    if (!ultimoDiagrama) {
+      atualizarStatus('Gere um fluxograma primeiro.', false, true);
+      return;
+    }
 
-    document.getElementById('copyExplanation').addEventListener('click', async () => {
-      const texto = explanationElement.innerText;
-
-      if (!texto || explanationElement.classList.contains('empty')) {
-        atualizarStatus('Ainda não há explicação para copiar.', false, true);
-        return;
-      }
-
-      try {
-        await navigator.clipboard.writeText(texto);
-        atualizarStatus('Explicação copiada.');
-      } catch (_) {
-        atualizarStatus('Não foi possível copiar a explicação.', false, true);
-      }
-    });
-  </script>
+    try {
+      await navigator.clipboard.writeText(ultimoDiagrama);
+      atualizarStatus('Definição do fluxograma copiada.');
+    } catch (_) {
+      atualizarStatus('Não foi possível copiar o diagrama.', false, true);
+    }
+  });
+</script>
 </body>
 </html>
